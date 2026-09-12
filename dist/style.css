@@ -59,4 +59,3 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .cloud-curtain::after { content: ''; position: absolute; top: 0; bottom: 0; right: -15vw; width: 32vw; background: radial-gradient(ellipse at 0 50%, var(--ivory) 57%, transparent 70%) 0 0 / 100% 28% repeat-y; filter: blur(12px); }
 @media (max-width: 600px) { .desktop-break { display: none; } .quote-intro { top: 25%; } .quote-landscape { top: 23%; width: 84%; } .next-scene { top: 53%; } }
 @media (prefers-reduced-motion: reduce) { .theme-button { transition: none; } }
-
