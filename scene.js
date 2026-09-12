@@ -595,7 +595,7 @@ function applyRoute() {
   const isSceneTwo = location.hash === '#scene2';
   firstScene.hidden = isSceneTwo;
   secondScene.hidden = !isSceneTwo;
-  aboutButton.hidden = isSceneTwo;
+  aboutButton.hidden = false;
   sceneChoices.forEach(button => {
     if (button.dataset.scene === (isSceneTwo ? 'scene2' : 'scene1')) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
@@ -649,6 +649,13 @@ function paintTransitionClouds(canvas) {
     }
   }
   ctx.shadowBlur = 0;
+  // Feather the trailing edge so the new scene emerges through mist.
+  ctx.globalCompositeOperation = 'destination-in';
+  const edge = ctx.createLinearGradient(0, 0, w * .16, 0);
+  edge.addColorStop(0, 'rgba(0,0,0,0)');
+  edge.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.fillStyle = edge; ctx.fillRect(0,0,width,height);
+  ctx.globalCompositeOperation = 'source-over';
 }
 async function navigateScene(destination) {
   if (navigating || !['scene1', 'scene2'].includes(destination)) return;
@@ -663,22 +670,30 @@ async function navigateScene(destination) {
   document.body.style.overflow = 'hidden';
   const resizeCurtain = () => paintTransitionClouds(curtain);
   let cover;
+  let reveal;
   try {
     paintTransitionClouds(curtain);
     window.addEventListener('resize', resizeCurtain);
     transition.classList.add('active');
     cover = curtain.animate([
       { transform: 'translateX(-100%)', offset: 0, easing: 'cubic-bezier(.4,0,.2,1)' },
-      { transform: 'translateX(0)', offset: .9 },
-      { transform: 'translateX(0)', offset: 1 }
+      { transform: 'translateX(-10%)', offset: .9 },
+      { transform: 'translateX(-10%)', offset: 1 }
     ], { duration: 4400, fill: 'forwards' });
     await cover.finished;
     location.hash = destination;
     applyRoute();
+    // Keep the same cloud canvas above the new scene until its entrance completes.
+    reveal = curtain.animate([
+      { transform: 'translateX(-10%)', opacity: 1 },
+      { transform: 'translateX(50%)', opacity: 1 }
+    ], { duration: 2600, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+    await reveal.finished;
   } finally {
     window.removeEventListener('resize', resizeCurtain);
     transition.classList.remove('active');
     cover?.cancel();
+    reveal?.cancel();
     curtain.width = curtain.height = 1;
     curtain.remove();
     document.body.style.overflow = oldOverflow;
