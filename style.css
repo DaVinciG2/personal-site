@@ -1,14 +1,65 @@
-:root { color-scheme: dark; background: #211a21; font-family: system-ui, sans-serif; }
+:root {
+  color-scheme: light;
+  --cream: #FFF4CC;
+  --ivory: #FFEDE1;
+  --peach: #F7CDB8;
+  --rose: #E9A8A0;
+  --sand: #C7A07E;
+  --butter: #F6DFA3;
+  --gold: #E7C58F;
+  --clay: #D0A68B;
+  background: var(--ivory);
+  color: #634F3E;
+  font-family: system-ui, sans-serif;
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; }
-.scene { height: 200vh; }
+.scene { height: 200vh; background: linear-gradient(var(--cream), var(--ivory) 50%); }
 .scene-intro, .scene-landscape { position: relative; height: 100vh; width: 100%; }
 .scene-intro { display: flex; align-items: flex-end; justify-content: center; padding: 2rem; }
-.scroll-cue { display: grid; place-items: center; width: 48px; height: 48px; color: #eed6cc; text-decoration: none; font-size: 1.5rem; }
-.scroll-cue:focus-visible { outline: 2px solid #eed6cc; outline-offset: 4px; }
-.scene-landscape { overflow: hidden; background: #4b3032; }
+.scroll-cue { display: grid; place-items: center; width: 48px; height: 48px; color: inherit; background: var(--butter); border: 1px solid var(--sand); border-radius: 50%; text-decoration: none; font-size: 1.5rem; }
+.scroll-cue:hover { background: var(--peach); border-color: var(--clay); }
+.scroll-cue:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; background: var(--rose); }
+.scene-landscape { overflow: hidden; background: var(--ivory); }
 canvas { display: block; width: 100%; height: 100%; }
-.status { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 2rem; text-align: center; color: #fff0e8; font-size: 1rem; }
+.status { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 2rem; text-align: center; font-size: 1rem; }
 .status[hidden] { display: none; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+[hidden] { display: none !important; }
+.scene { position: relative; overflow: clip; }
+button { font: inherit; cursor: pointer; }
+.theme-button { border: 0; background: var(--sand); color: var(--butter); transition: color .25s, background-color .25s, box-shadow .25s; }
+.theme-button:hover { background: var(--butter); color: var(--sand); }
+button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
+.about-button { position: absolute; z-index: 5; top: max(1.75rem, env(safe-area-inset-top)); left: clamp(1.25rem, 3vw, 3rem); padding: .8rem 1.7rem; border-radius: 999px; letter-spacing: .035em; }
+.scene-quote { position: absolute; left: 50%; width: min(86%, 1000px); margin: 0; transform: translateX(-50%); text-align: center; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(1.8rem, 3.8vw, 3.8rem); line-height: 1.22; letter-spacing: -.025em; color: #634F3E; z-index: 2; will-change: opacity; }
+.quote-intro { top: 23%; }
+.quote-landscape { top: 25%; font-size: clamp(1.65rem, 3.2vw, 3.2rem); text-shadow: 0 2px 24px var(--ivory); }
+.scroll-cue { position: relative; z-index: 3; }
+.next-scene { position: absolute; z-index: 3; right: clamp(1.25rem, 4vw, 4rem); top: 52%; width: clamp(60px, 7vw, 92px); aspect-ratio: 1; border-radius: 50%; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1; }
+.parting-clouds { position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 120vh; overflow: clip; pointer-events: none; }
+.cloud-layer { position: absolute; top: var(--cloud-top); left: 0; width: 100%; height: var(--cloud-height); }
+.cloud-layer.is-parted .cloud-left { transform: translateX(calc(-100vw - 100%)); }
+.cloud-layer.is-parted .cloud-right { transform: translateX(calc(100vw + 100%)); }
+.cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(140px, var(--cloud-width), 430px); height: 100%; transition: transform var(--cloud-duration, 1100ms) cubic-bezier(.45, 0, .15, 1); }
+
+
+.about-dialog { border: 0; padding: 0; background: transparent; color: #493B2E; width: min(88vw, 520px); max-height: 85dvh; overflow: visible; perspective: 1200px; }
+.about-dialog::backdrop { background: rgb(99 79 62 / .22); backdrop-filter: blur(6px); }
+.about-card { position: relative; padding: clamp(2rem, 6vw, 3.5rem); border-radius: 28px; background: var(--sand); box-shadow: 0 24px 100px rgb(99 79 62 / .2); transform-origin: center; backface-visibility: hidden; max-height: 85dvh; overflow: auto; }
+.card-eyebrow { font-size: .65rem; letter-spacing: .22em; margin: 0 0 2rem; }
+.about-card h2 { font: 400 clamp(2.5rem, 8vw, 4rem)/1 Georgia, serif; margin: 0 0 1.5rem; }
+.about-copy { font: 400 1.4rem/1.5 Georgia, serif; margin: 0; }
+.close-about { position: absolute; top: .6rem; right: .8rem; border: 0; background: transparent; color: inherit; font-size: 1.7rem; width: 44px; height: 44px; border-radius: 50%; }
+.scene-two { min-height: 100dvh; display: grid; place-items: center; background: var(--ivory); }
+.scene-two h1 { font: 400 2.5rem Georgia, serif; }
+.cloud-transition { position: fixed; inset: 0; z-index: 20; pointer-events: none; visibility: hidden; overflow: hidden; }
+.cloud-transition.active { visibility: visible; pointer-events: auto; }
+.cloud-curtain { position: absolute; top: -20%; left: -45%; width: 160%; height: 140%; background: var(--ivory); transform: translateX(-110%); }
+.cloud-curtain::after { content: ''; position: absolute; top: 0; bottom: 0; right: -15vw; width: 32vw; background: radial-gradient(ellipse at 0 50%, var(--ivory) 57%, transparent 70%) 0 0 / 100% 28% repeat-y; filter: blur(12px); }
+@media (max-width: 600px) { .desktop-break { display: none; } .quote-intro { top: 25%; } .quote-landscape { top: 23%; width: 84%; } .next-scene { top: 53%; } }
+@media (prefers-reduced-motion: reduce) { .theme-button { transition: none; } }
+
+@media (prefers-reduced-motion: reduce) { .cloud-bank { transition-duration: 0ms; } }
