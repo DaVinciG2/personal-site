@@ -164,17 +164,30 @@ function showError(error) {
 startScene().catch(showError);
 
 
-// Each moving bank owns an independent WebGL canvas and GPU resources.
+// Independent movable canvases share one offscreen FBM renderer to avoid context limits.
 class PartingClouds {
   constructor(layers) {
     this.layers = layers;
-    // Randomize once per visit, in loose vertical bands to preserve open space.
+    this.interacted = false;
+    this.renderCanvas = document.createElement('canvas');
+    this.onFirstInteraction = event => {
+      if (event.type === 'pointermove' && event.movementX === 0 && event.movementY === 0) return;
+      this.interacted = true;
+      for (const type of ['wheel', 'pointerdown', 'pointermove', 'keydown']) window.removeEventListener(type, this.onFirstInteraction);
+      queueScrollScene();
+    };
+    for (const type of ['wheel', 'pointerdown', 'pointermove', 'keydown']) window.addEventListener(type, this.onFirstInteraction, { passive: true });
+    // Eight rows with three jittered columns: varied silhouettes without giant slabs.
     layers.forEach((layer, index) => {
-      layer.style.setProperty('--cloud-top', (index * 26 + 3 + Math.random() * 7) + 'vh');
-      layer.style.setProperty('--cloud-height', (16 + Math.random() * 8) + 'vh');
-      layer.style.setProperty('--cloud-width', (22 + Math.random() * 12) + 'vw');
-      layer.style.setProperty('--cloud-x', (5 + Math.random() * 48) + '%');
-      layer.style.setProperty('--cloud-duration', (1100 + Math.random() * 350) + 'ms');
+      const row = Math.floor(index / 3), column = index % 3;
+      const height = 18 + Math.random() * 12;
+      const top = row < 3 ? row * 9 + Math.random() * 2 : 50 + (row - 3) * 12 + Math.random() * 2;
+      layer.dataset.introCloud = String(row < 3);
+      layer.style.setProperty('--cloud-top', top + 'vh');
+      layer.style.setProperty('--cloud-height', Math.min(height, (row < 3 ? 50 : 130) - top) + 'vh');
+      layer.style.setProperty('--cloud-width', (25 + Math.random() * 14) + 'vw');
+      layer.style.setProperty('--cloud-x', (column * 29 - 3 + Math.random() * 9) + '%');
+      layer.style.setProperty('--cloud-duration', (1250 + Math.random() * 550) + 'ms');
       layer.querySelector('canvas').dataset.seed = String(Math.random() * 100);
     });
     this.banks = layers.flatMap(layer => [...layer.querySelectorAll('canvas')].map(canvas => ({
@@ -258,9 +271,9 @@ class PartingClouds {
     this.schedule();
   }
   createGPU(bank) {
-    const gl = bank.canvas.getContext('webgl2', { preserveDrawingBuffer: true, alpha: true, premultipliedAlpha: false, antialias: false, depth: false });
+    const gl = this.renderCanvas.getContext('webgl2', { preserveDrawingBuffer: true, alpha: true, premultipliedAlpha: false, antialias: false, depth: false });
     if (!gl) throw new Error('Cloud canvas requires WebGL 2.');
-    const gpu = bank.gpu = { gl, shaders: [] };
+    const gpu = this.gpu = { gl, shaders: [] };
     const compile = (type, source) => {
       const shader = gl.createShader(type);
       gpu.shaders.push(shader);
@@ -288,11 +301,17 @@ class PartingClouds {
         p += vec2(seed + time * .035, seed * .37);
         float n = fbm(p, 6);
         float detail = fbm(p * 1.8 + 13.0, 5);
-        // Irregular cloud contour with transparent upper/lower and side edges.
-        float silhouette = .34 + (n - .5) * .65 - abs(uv.y - .48);
-        float alpha = smoothstep(-.055, .08, silhouette);
-        alpha *= smoothstep(0.0, .12, uv.x) * (1.0 - smoothstep(.86, 1.0, uv.x));
-        alpha *= smoothstep(0.0, .08, uv.y) * (1.0 - smoothstep(.9, 1.0, uv.y));
+        // A cluster of overlapping billows, distorted by the existing FBM.
+        vec2 q = (uv - .5) * vec2(2.0, 2.3);
+        float warp = (n - .5) * .26;
+        float radius = min(length((q - vec2(-.32, -.04)) / vec2(.58, .64)),
+                           length((q - vec2(.22, .06)) / vec2(.65, .54)));
+        radius = min(radius, length((q - vec2(-.04, .23)) / vec2(.47, .63)));
+        float silhouette = 1.0 - radius + warp;
+        float contour = smoothstep(0.0, .35, silhouette);
+        // Continuous center-to-edge fade, with no rectangular opaque background.
+        float radial = 1.0 - smoothstep(.0, 1.05, length(q));
+        float alpha = contour * radial;
         vec3 shade = mix(PEACH, BUTTER, smoothstep(.28, .65, n));
         shade = mix(shade, IVORY, smoothstep(.4, .72, detail) * .85);
         shade = mix(shade, CREAM, smoothstep(.015, .12, silhouette) * .2);
@@ -320,13 +339,15 @@ class PartingClouds {
   draw(bank, now) {
     if (bank.disposed || bank.lost || bank.failed || !this.source) return;
     try {
-      const gpu = bank.gpu || this.createGPU(bank);
+      const gpu = this.gpu || this.createGPU(bank);
       const { gl, uniforms } = gpu;
       const width = bank.canvas.clientWidth, height = bank.canvas.clientHeight;
       if (!width || !height) return;
       const scale = Math.min(devicePixelRatio || 1, 1, 720 / width, 360 / height);
       const w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
-      if (bank.canvas.width !== w || bank.canvas.height !== h) { bank.canvas.width = w; bank.canvas.height = h; }
+      if (bank.renderedWidth === w && bank.renderedHeight === h) return;
+      bank.canvas.width = w; bank.canvas.height = h;
+      this.renderCanvas.width = w; this.renderCanvas.height = h;
       gl.viewport(0, 0, w, h);
       gl.useProgram(gpu.program);
       gl.bindVertexArray(gpu.vao);
@@ -334,9 +355,13 @@ class PartingClouds {
       gl.bindTexture(gl.TEXTURE_2D, gpu.texture);
       gl.uniform1i(uniforms.iChannel0, 0);
       gl.uniform2f(uniforms.resolution, w, h);
-      gl.uniform1f(uniforms.time, reducedMotion.matches ? 0 : now / 1000);
+      gl.uniform1f(uniforms.time, 0);
       gl.uniform1f(uniforms.seed, Number(bank.canvas.dataset.seed));
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      bank.context = bank.context || bank.canvas.getContext('2d');
+      bank.context.clearRect(0, 0, w, h);
+      bank.context.drawImage(this.renderCanvas, 0, 0);
+      bank.renderedWidth = w; bank.renderedHeight = h;
     } catch (error) { bank.failed = true; console.error(error); }
   }
   schedule() {
@@ -386,6 +411,7 @@ class PartingClouds {
     canvas.width = canvas.height = 1;
     canvas.remove();
     bank.gpu = null;
+    bank.context = null;
     bank.canvas = null;
   }
   close() {
@@ -396,6 +422,17 @@ class PartingClouds {
     this.resizeObserver.disconnect();
     document.removeEventListener('visibilitychange', this.visibilityChanged);
     window.removeEventListener('resize', this.schedule);
+    if (this.gpu) {
+      const { gl, texture, vao, program, shaders } = this.gpu;
+      shaders.forEach(shader => gl.deleteShader(shader));
+      if (texture) gl.deleteTexture(texture);
+      if (vao) gl.deleteVertexArray(vao);
+      if (program) gl.deleteProgram(program);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      this.gpu = null;
+    }
+    this.renderCanvas.width = this.renderCanvas.height = 1;
+    for (const type of ['wheel', 'pointerdown', 'pointermove', 'keydown']) window.removeEventListener(type, this.onFirstInteraction);
     this.noise = null;
     this.source = null;
   }
@@ -419,6 +456,10 @@ function updateScrollScene() {
   const midpoint = window.innerHeight / 2;
   cloudLayers.forEach(layer => {
     if (layer.classList.contains('is-parted')) return;
+    if (layer.dataset.introCloud === 'true') {
+      if (partingClouds.interacted) partingClouds.part(layer);
+      return;
+    }
     const bounds = layer.getBoundingClientRect();
     if (bounds.height > 0 && bounds.top + bounds.height / 2 <= midpoint) {
       partingClouds.part(layer);
