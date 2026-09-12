@@ -239,13 +239,26 @@ class PartingClouds {
     for (const bank of this.banks.filter(bank => bank.layer === layer && !bank.disposed)) {
       this.draw(bank, performance.now());
       bank.departing = true;
-      bank.canvas.getBoundingClientRect();
+      const bounds = bank.canvas.getBoundingClientRect();
+      const distance = bank.canvas.classList.contains('cloud-left')
+        ? -(bounds.right + 32)
+        : document.documentElement.clientWidth - bounds.left + 32;
+      const duration = parseFloat(getComputedStyle(layer).getPropertyValue('--cloud-duration')) || 1300;
+      bank.motionFinished = false;
+      bank.motion = bank.canvas.animate([
+        { transform: 'translateX(0px)' },
+        { transform: 'translateX(' + distance + 'px)' }
+      ], { duration, easing: 'cubic-bezier(.45,0,.15,1)', fill: 'forwards' });
+      bank.motion.finished.then(() => {
+        bank.motionFinished = true;
+        this.schedule();
+      }).catch(() => {});
     }
     layer.classList.add('is-parted');
     this.schedule();
   }
   createGPU(bank) {
-    const gl = bank.canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: false, antialias: false, depth: false });
+    const gl = bank.canvas.getContext('webgl2', { preserveDrawingBuffer: true, alpha: true, premultipliedAlpha: false, antialias: false, depth: false });
     if (!gl) throw new Error('Cloud canvas requires WebGL 2.');
     const gpu = bank.gpu = { gl, shaders: [] };
     const compile = (type, source) => {
@@ -342,7 +355,7 @@ class PartingClouds {
         const bounds = bank.canvas.getBoundingClientRect();
         bank.movingInLayout = bounds.width > 0;
         // Horizontal bounds only: scrolling offscreen is not permission to unload.
-        if (bounds.width > 0 && (bounds.right <= 0 || bounds.left >= document.documentElement.clientWidth)) {
+        if (bank.motionFinished && bounds.width > 0 && (bounds.right <= 0 || bounds.left >= document.documentElement.clientWidth)) {
           this.dispose(bank);
           continue;
         }
@@ -368,6 +381,8 @@ class PartingClouds {
       if (gpu.program) gl.deleteProgram(gpu.program);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     }
+    bank.motion?.cancel();
+    bank.motion = null;
     canvas.width = canvas.height = 1;
     canvas.remove();
     bank.gpu = null;
@@ -399,7 +414,7 @@ function updateScrollScene() {
   const progress = window.scrollY / Math.max(1, window.innerHeight);
   introQuote.style.opacity = 1 - clamp01(progress / .65);
   landscapeQuote.style.opacity = 1 - clamp01((progress - .72) / .55);
-  // Trigger once per layer; CSS owns the entire time-based movement.
+  // Trigger once per layer; Web Animations owns the time-based movement.
   // The stationary wrapper supplies the y anchor even while its banks move.
   const midpoint = window.innerHeight / 2;
   cloudLayers.forEach(layer => {
