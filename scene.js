@@ -621,28 +621,36 @@ let cometVisible = false;
 function scheduleComet() {
   clearTimeout(cometTimer);
   if (!cometVisible || document.hidden) return;
-  cometTimer = setTimeout(spawnComet, 3500 + Math.random() * 5000);
+  cometTimer = setTimeout(spawnComet, 2200 + Math.random() * 2600);
 }
 function spawnComet() {
   if (!cometVisible || document.hidden) return;
   const comet = document.createElement('i');
   comet.className = 'comet';
-  comet.style.left = (8 + Math.random() * 65) + '%';
-  comet.style.top = (8 + Math.random() * 60) + '%';
-  comet.style.setProperty('--tail', (25 + Math.random() * 30) + 'px');
+  const bounds = cometField.getBoundingClientRect();
+  const visibleTop = Math.max(0, -bounds.top);
+  const visibleBottom = Math.min(bounds.height, window.innerHeight - bounds.top);
+  const visibleHeight = visibleBottom - visibleTop;
+  if (visibleHeight <= 0) { scheduleComet(); return; }
+  comet.style.left = (8 + Math.random() * 58) + '%';
+  comet.style.top = (visibleTop + visibleHeight * (.12 + Math.random() * .48)) + 'px';
+  comet.style.setProperty('--tail', (60 + Math.random() * 45) + 'px');
   cometField.append(comet);
   const angle = 18 + Math.random() * 18;
-  const travel = 120 + Math.random() * 140;
+  const travel = Math.min(window.innerWidth * .35, 180 + Math.random() * 140);
   const motion = comet.animate([
     { transform: 'rotate(' + angle + 'deg) translateX(0)', opacity: 0 },
-    { opacity: .85, offset: .18 },
+    { opacity: 1, offset: .12 },
+    { opacity: .95, offset: .65 },
     { transform: 'rotate(' + angle + 'deg) translateX(' + travel + 'px)', opacity: 0 }
-  ], { duration: 1600 + Math.random() * 900, easing: 'ease-out' });
-  motion.finished.finally(() => comet.remove());
+  ], { duration: 2200 + Math.random() * 700, easing: 'ease-out' });
+  motion.finished.then(() => comet.remove(), () => comet.remove());
   scheduleComet();
 }
 new IntersectionObserver(([entry]) => {
+  const wasVisible = cometVisible;
   cometVisible = entry.isIntersecting && entry.intersectionRatio > 0;
-  scheduleComet();
+  if (cometVisible && !wasVisible) spawnComet();
+  else if (!cometVisible) clearTimeout(cometTimer);
 }, { threshold: .01 }).observe(cometField);
 document.addEventListener('visibilitychange', scheduleComet);
