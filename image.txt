@@ -5,6 +5,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     // Canvas spans document 100-200vh; WebGL y=0 is its bottom (200vh).
     // Spatial opacity remains attached to the page while scrolling.
     float distanceFrom200vh = uv.y;
+#ifdef CLOUDS_ONLY
+    float opacity = 1.0;
+#else
     float opacity = 1.0 - smoothstep(0.0, 1.0, distanceFrom200vh);
+#endif
     fragColor = vec4(col, opacity);
 }

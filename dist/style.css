@@ -101,3 +101,15 @@ body.about-open .about-button { visibility: hidden; }
 .scene-nav-panel { margin-top: .75rem; width: min(210px, calc(100vw - 2.5rem)); padding: .5rem; border: 1px solid rgb(199 160 126 / .38); border-radius: 20px; background: rgb(255 237 225 / .96); box-shadow: 0 12px 32px rgb(199 160 126 / .2); }
 .scene-nav-panel button { display: block; width: 100%; padding: .85rem 1rem; text-align: left; border: 0; border-radius: 12px; background: transparent; color: #72503E; }
 .scene-nav-panel button:hover, .scene-nav-panel button[aria-current="page"] { background: rgb(246 223 163 / .65); }
+
+/* A conversational introduction with space between thoughts. */
+.about-copy { font-size: clamp(1rem, 2.2vw, 1.12rem); line-height: 1.7; }
+.about-copy p { margin: 0 0 1em; }
+.about-copy p:first-child { font-size: 1.12em; }
+.about-copy p:last-child { margin-bottom: 0; }
+
+/* Center the introduction and its quieter supporting thought as one group. */
+.intro-copy { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(86%, 1000px); z-index: 2; text-align: center; }
+.scene-intro .intro-copy .quote-intro { position: static; width: 100%; transform: none; }
+.intro-subtext { max-width: 620px; margin: 22px auto 0; color: #806a55; font: 400 clamp(.9rem, 1.4vw, 1.1rem)/1.65 Georgia, 'Times New Roman', serif; text-wrap: pretty; }
+@media (max-width: 600px) { .intro-subtext { margin-top: 18px; max-width: 34ch; } }

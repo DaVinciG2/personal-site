@@ -1,0 +1,5 @@
+node_modules/
+.idea/
+cloud-window-preview.png
+site-deploy.tar.gz
+site-preview.tar.gz

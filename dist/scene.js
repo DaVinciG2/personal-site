@@ -1,8 +1,14 @@
-const canvas = document.querySelector('.scene-landscape canvas');
-const surface = document.querySelector('.scene-landscape');
+import './tapes.js';
 const status = document.querySelector('.status');
 
-async function startScene() {
+async function startScene(options = {}) {
+  const cloudsOnly = !!options.cloudsOnly;
+  const canvas = options.canvas || document.querySelector('.scene-landscape canvas');
+  const surface = options.surface || document.querySelector('.scene-landscape');
+  const handleError = cloudsOnly ? error => {
+    canvas.dataset.ready = 'false';
+    console.warn('Window cloud view unavailable:', error);
+  } : showError;
   const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: false, antialias: false, depth: false });
   if (!gl) throw new Error('This landscape requires a browser with WebGL 2 support.');
 
@@ -48,8 +54,9 @@ async function startScene() {
     return { program: result, uniforms: Object.fromEntries(['iResolution', 'iTime', 'iChannel0', 'iChannel1'].map((name) => [name, gl.getUniformLocation(result, name)])) };
   }
 
-  const bufferPass = program(sources[0]);
-  const imagePass = program(sources[1]);
+  const mode = cloudsOnly ? '#define CLOUDS_ONLY\n' : '';
+  const bufferPass = program(mode + sources[0]);
+  const imagePass = program(mode + sources[1]);
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
 
@@ -89,7 +96,9 @@ async function startScene() {
   function resize() {
     const bounds = surface.getBoundingClientRect();
     // Bound GPU cost for this texture-heavy shader, retaining the viewport aspect ratio.
-    const scale = Math.min(devicePixelRatio || 1, 1.5, 1600 / bounds.width, 1000 / bounds.height);
+    const scale = cloudsOnly
+      ? Math.min(devicePixelRatio || 1, 1, 1000 / bounds.width, 700 / bounds.height)
+      : Math.min(devicePixelRatio || 1, 1.5, 1600 / bounds.width, 1000 / bounds.height);
     const width = Math.max(1, Math.round(bounds.width * scale));
     const height = Math.max(1, Math.round(bounds.height * scale));
     if (canvas.width === width && canvas.height === height && targets.length) return;
@@ -135,9 +144,10 @@ async function startScene() {
       draw(bufferPass, targets[writeIndex].framebuffer, noiseTexture, targets[readIndex].texture, elapsed);
       draw(imagePass, null, targets[writeIndex].texture, null, elapsed);
       readIndex = writeIndex;
-      status.hidden = true;
+      if (!cloudsOnly) status.hidden = true;
+      canvas.dataset.ready = 'true';
       if (visible && !document.hidden) frame = requestAnimationFrame(render);
-    } catch (error) { showError(error); }
+    } catch (error) { handleError(error); }
   }
   function schedule() {
     cancelAnimationFrame(frame);
@@ -152,7 +162,7 @@ async function startScene() {
     event.preventDefault();
     lost = true;
     cancelAnimationFrame(frame);
-    showError(new Error('The graphics connection was interrupted. Reload to restore the landscape.'));
+    handleError(new Error('The graphics connection was interrupted. Reload to restore the landscape.'));
   });
 }
 
@@ -162,6 +172,19 @@ function showError(error) {
   status.hidden = false;
 }
 startScene().catch(showError);
+
+// Allocate the second view only when its scene is first visited.
+const windowView = document.querySelector('.archive-window-view');
+const windowCanvas = windowView.querySelector('canvas');
+const windowStart = new IntersectionObserver(([entry]) => {
+  if (!entry.isIntersecting) return;
+  windowStart.disconnect();
+  startScene({ canvas: windowCanvas, surface: windowView, cloudsOnly: true }).catch(error => {
+    windowCanvas.dataset.ready = 'false';
+    console.warn('Window cloud view unavailable:', error);
+  });
+});
+windowStart.observe(windowView);
 
 
 // Independent movable canvases share one offscreen FBM renderer to avoid context limits.
@@ -489,6 +512,7 @@ class PartingClouds {
 
 // Page interactions remain independent of WebGL availability.
 const introQuote = document.querySelector('.quote-intro');
+const introCopy = document.querySelector('.intro-copy');
 const cloudLayers = [...document.querySelectorAll('.cloud-layer')];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const partingClouds = new PartingClouds(cloudLayers);
@@ -497,7 +521,7 @@ let scrollFrame = 0;
 function updateScrollScene() {
   scrollFrame = 0;
   const progress = window.scrollY / Math.max(1, window.innerHeight);
-  introQuote.style.opacity = 1 - clamp01(progress / .65);
+  introCopy.style.opacity = 1 - clamp01(progress / .65);
   // Trigger once per layer; Web Animations owns the time-based movement.
   // The stationary wrapper supplies the y anchor even while its banks move.
   const midpoint = window.innerHeight / 2;
