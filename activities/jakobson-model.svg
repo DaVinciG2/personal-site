@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="650" viewBox="0 0 760 650" role="img" aria-labelledby="title desc">
+<title id="title">Jakobson’s model of communication</title>
+<desc id="desc">An addresser sends a message to an addressee. Context, contact, and a shared code make communication possible. Gold cards highlight the four factors used in the AILATO adaptation, where Contact is represented by the Channel module.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#89633f" stroke-width="1.5"/></marker></defs>
+<rect width="760" height="650" rx="16" fill="#fff8e9"/>
+<g fill="#634b35" font-family="Georgia, serif" text-anchor="middle">
+<text x="380" y="44" font-size="29">Jakobson’s communication model</text>
+<text x="380" y="73" font-family="Arial, sans-serif" font-size="16">Six factors in an act of communication</text>
+</g>
+<g fill="none" stroke="#b79670" stroke-width="2" stroke-dasharray="5 6">
+<path d="M380 188V222 M380 310V344 M380 432V466"/>
+</g>
+<g fill="none" stroke="#89633f" stroke-width="2.2" marker-end="url(#arrow)">
+<path d="M208 266H252"/><path d="M502 266H546"/>
+</g>
+<g stroke-width="1.5">
+<rect x="260" y="100" width="240" height="88" rx="12" fill="#f6dfab" stroke="#b3854b"/>
+<rect x="24" y="222" width="184" height="88" rx="12" fill="#f2e4d6" stroke="#c5ab8e"/>
+<rect x="260" y="222" width="240" height="88" rx="12" fill="#f6dfab" stroke="#b3854b"/>
+<rect x="552" y="222" width="184" height="88" rx="12" fill="#f2e4d6" stroke="#c5ab8e"/>
+<rect x="260" y="344" width="240" height="88" rx="12" fill="#f6dfab" stroke="#b3854b"/>
+<rect x="260" y="466" width="240" height="88" rx="12" fill="#f6dfab" stroke="#b3854b"/>
+</g>
+<g fill="#513c29" font-family="Georgia, serif" font-size="25" text-anchor="middle">
+<text x="380" y="137">Context</text>
+<text x="116" y="259">Addresser</text>
+<text x="380" y="259">Message</text>
+<text x="644" y="259">Addressee</text>
+<text x="380" y="381">Contact</text>
+<text x="380" y="503">Code</text>
+</g>
+<g fill="#73563b" font-family="Arial, sans-serif" font-size="17" text-anchor="middle">
+<text x="380" y="165">What is being referred to</text>
+<text x="116" y="287">The sender</text>
+<text x="380" y="287">What is communicated</text>
+<text x="644" y="287">The receiver</text>
+<text x="380" y="409">Channel + connection</text>
+<text x="380" y="531">Shared language or signs</text>
+</g>
+<path d="M40 578H720" stroke="#d4bd9e"/>
+<g fill="#73563b" font-family="Arial, sans-serif" font-size="17" text-anchor="middle">
+<text x="380" y="605">Gold: factors informing my AILATO framework.</text>
+<text x="380" y="630">AILATO adapts Contact as its Channel module.</text>
+</g>
+</svg>

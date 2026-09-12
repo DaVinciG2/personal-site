@@ -243,6 +243,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     }
 
     vec3 col = bg.rgb;
+#ifndef CLOUDS_ONLY
     // train /////////////////////////////////////////////////////////////////////
     float k;
     float midlevel;
@@ -328,6 +329,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 
 
+#endif
     col = col * (1.0 - fg.a) + fg.rgb;
 
     // Output to screen

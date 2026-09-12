@@ -5,7 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="A journey through a shifting landscape of clouds." />
     <title>Cloud Train</title>
+    <script>
+      // A reload starts the journey again, before the scene modules initialize.
+      if (performance.getEntriesByType('navigation')[0]?.type === 'reload') {
+        history.scrollRestoration = 'manual';
+        history.replaceState(history.state, '', location.pathname + location.search + '#scene1');
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        window.addEventListener('pageshow', () => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        }, { once: true });
+      }
+    </script>
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./tapes.css" />
     <script type="module" src="./scene.js"></script>
   </head>
   <body>
@@ -20,7 +32,7 @@
     <main class="scene" aria-label="Cloud train scene">
       <div class="scene-intro">
         <img class="crayon-sun" src="./sun.png" alt="" aria-hidden="true">
-        <h1 class="scene-quote quote-intro" tabindex="-1">We live in the gap of<br class="desktop-break"> reality and fantasy.</h1>
+        <div class="intro-copy"><h1 class="scene-quote quote-intro" tabindex="-1">We live in the gap of<br class="desktop-break"> reality and fantasy.</h1><p class="intro-subtext">Zack always wanted a little romance and poetry in his everyday life. As he put it, “They are always there, waiting to be discovered.”</p></div>
       </div>
       <section class="scene-landscape" id="landscape" aria-label="Animated cloud landscape with a train">
         <canvas aria-label="A train crossing a bridge through layers of moving clouds" role="img"></canvas>
@@ -68,7 +80,7 @@
         <button class="close-about" type="button" aria-label="Close about me">×</button>
         <p class="card-eyebrow">A LITTLE INTRODUCTION</p>
         <h2 id="about-title">about me</h2>
-        <p class="about-copy">We live in the gap of reality and fantasy.</p>
+        <div class="about-copy"><p>I’m Ziyi Xu, or Zack Xu—an anime, comics, games, and novels enthusiast who sometimes gets a little lost in his own world.</p><p>I often wonder: what changed me? What made me willing to put so much of myself into interests that might seem ordinary or easy to overlook? How did a love for these things take me from being afraid to approach people to leading a club of my own?</p><p>Those questions are a big part of why cognitive science and psychology fascinate me. I want to understand how the things we love can shape who we become.</p></div>
       </article>
     </dialog>
     <div class="cloud-transition" aria-hidden="true"></div>
