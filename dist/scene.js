@@ -572,7 +572,6 @@ const firstScene = document.querySelector('.scene');
 const secondScene = document.querySelector('.scene-two');
 const nextButton = document.querySelector('.next-scene');
 const transition = document.querySelector('.cloud-transition');
-const curtain = document.querySelector('.cloud-curtain');
 let navigating = false;
 function applyRoute() {
   const isSceneTwo = location.hash === '#scene2';
@@ -588,27 +587,72 @@ function applyRoute() {
 }
 window.addEventListener('hashchange', applyRoute);
 applyRoute();
+function paintTransitionClouds(canvas) {
+  const width = window.innerWidth * 2.4, height = window.innerHeight * 1.4;
+  const scale = Math.min(1, 2200 / width, 1100 / height);
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+  const w = window.innerWidth;
+  // An opaque cloud interior guarantees complete coverage before the route changes.
+  const interior = ctx.createLinearGradient(0, 0, w, height);
+  interior.addColorStop(0, '#FFEDE1'); interior.addColorStop(.5, '#F6DFA3'); interior.addColorStop(1, '#F7CDB8');
+  ctx.fillStyle = interior; ctx.fillRect(0,0,w * 1.12,height);
+  const palette = [['#F7CDB8','#E9A8A0'], ['#F6DFA3','#E7C58F'], ['#FFEDE1','#F7CDB8'], ['#FFF4CC','#F6DFA3']];
+  // Four overlapping banks, each built from giant irregular billows.
+  for (let layer = 0; layer < 4; layer++) {
+    for (let i = 0; i < 6; i++) {
+      const x = w * (1.53 - layer * .31 + Math.sin(i * 2.1 + layer) * .12);
+      const y = height * (i / 5);
+      const rx = w * (.48 + Math.sin(i + layer) * .06);
+      const ry = height * (.24 + Math.cos(i * 1.7) * .03);
+      const gradient = ctx.createRadialGradient(x-rx*.18,y-ry*.2,0,x,y,Math.max(rx,ry));
+      gradient.addColorStop(0,palette[layer][0]); gradient.addColorStop(1,palette[layer][1]);
+      ctx.fillStyle = gradient;
+      ctx.shadowColor = palette[layer][0]; ctx.shadowBlur = 14 * scale;
+      ctx.beginPath();
+      for (let p=0;p<=120;p++) {
+        const angle = p / 120 * Math.PI * 2;
+        const ripple = 1 + .045*Math.sin(angle*7+i+layer) + .025*Math.sin(angle*13+layer*2);
+        const px=x+Math.cos(angle)*rx*ripple, py=y+Math.sin(angle)*ry*ripple;
+        if(p===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+      }
+      ctx.closePath();ctx.fill();
+    }
+  }
+  ctx.shadowBlur = 0;
+}
 nextButton.addEventListener('click', async () => {
   if (navigating) return;
   navigating = true;
   nextButton.disabled = true;
-  transition.classList.add('active');
-  const duration = reducedMotion.matches ? 0 : 1600;
+  const curtain = document.createElement('canvas');
+  curtain.className = 'cloud-curtain';
+  transition.append(curtain);
+  const oldOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  const resizeCurtain = () => paintTransitionClouds(curtain);
   let cover;
   try {
-    // Complete the sweep AND its fully covered hold before changing the route.
+    paintTransitionClouds(curtain);
+    window.addEventListener('resize', resizeCurtain);
+    transition.classList.add('active');
     cover = curtain.animate([
-      { transform: 'translateX(-110%)', offset: 0, easing: 'cubic-bezier(.45,0,.15,1)' },
-      { transform: 'translateX(0)', offset: .82 },
+      { transform: 'translateX(-100%)', offset: 0, easing: 'cubic-bezier(.4,0,.2,1)' },
+      { transform: 'translateX(0)', offset: .9 },
       { transform: 'translateX(0)', offset: 1 }
-    ], { duration, fill: 'forwards' });
+    ], { duration: 4400, fill: 'forwards' });
     await cover.finished;
     location.hash = 'scene2';
     applyRoute();
-    // The new page appears only after the complete transition has finished.
   } finally {
+    window.removeEventListener('resize', resizeCurtain);
     transition.classList.remove('active');
     cover?.cancel();
+    curtain.width = curtain.height = 1;
+    curtain.remove();
+    document.body.style.overflow = oldOverflow;
     navigating = false;
     nextButton.disabled = false;
   }
