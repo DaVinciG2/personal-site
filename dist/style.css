@@ -72,8 +72,7 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .crayon-sun { position: absolute; right: 7vw; top: 5vh; width: clamp(110px, 20vw, 250px); aspect-ratio: 1; object-fit: contain; z-index: 2; pointer-events: none; animation: sun-turn 65s linear infinite; }
 @keyframes sun-turn { to { transform: rotate(360deg); } }
 .comet-field { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
-.comet { position: absolute; width: 9px; height: 9px; border: 2px solid #BFDCEB; border-radius: 50%; background: white; box-shadow: 0 0 5px white, 0 0 12px #BFDCEB; }
-.comet::before { content: ""; position: absolute; top: 50%; right: 4px; width: var(--tail); height: 3px; transform: translateY(-50%); background: linear-gradient(to right, transparent, #BFDCEB); border-radius: 100%; }
+.comet { position: absolute; pointer-events: none; }
 .about-dialog { perspective: none; }
 .about-card { transform-origin: 0 0; backface-visibility: visible; }
 body.about-open .about-button { visibility: hidden; }

@@ -623,27 +623,69 @@ function scheduleComet() {
   if (!cometVisible || document.hidden) return;
   cometTimer = setTimeout(spawnComet, 2200 + Math.random() * 2600);
 }
+function cometTrajectory(t, speed, gravity) {
+  // Mathematical -30 degrees: invert y for screen coordinates, launching down/right.
+  const angle = -Math.PI / 6;
+  const vx = speed * Math.cos(angle), vy = -speed * Math.sin(angle);
+  return { x: vx * t, y: vy * t + .5 * gravity * t * t, angle: Math.atan2(vy + gravity * t, vx) * 180 / Math.PI };
+}
+function paintComet(canvas, width, height) {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr);
+  canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const headX = width - 24, headY = height / 2;
+  // Broad translucent ion plume, narrowing to a brilliant white nucleus.
+  for (let i = 30; i >= 0; i--) {
+    const u = i / 30, x = headX - u * (width - 40);
+    const radius = 3 + u * 32;
+    const y = headY - Math.sin(u * Math.PI) * 7;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    glow.addColorStop(0, 'rgba(191,220,235,' + (.2 * Math.pow(1 - u, 1.3)) + ')');
+    glow.addColorStop(.35, 'rgba(191,220,235,' + (.1 * (1 - u)) + ')');
+    glow.addColorStop(1, 'rgba(191,220,235,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x,y,radius,0,Math.PI*2); ctx.fill();
+  }
+  // Narrow luminous spine inside the soft blue tail.
+  const spine = ctx.createLinearGradient(headX - width * .7, headY, headX, headY);
+  spine.addColorStop(0, 'rgba(191,220,235,0)');
+  spine.addColorStop(.6, 'rgba(191,220,235,.35)');
+  spine.addColorStop(1, 'rgba(255,255,255,.98)');
+  ctx.fillStyle = spine;
+  ctx.beginPath(); ctx.moveTo(headX,headY);
+  ctx.quadraticCurveTo(headX-width*.2,headY-9,headX-width*.75,headY-13);
+  ctx.quadraticCurveTo(headX-width*.2,headY+8,headX,headY); ctx.fill();
+  const halo = ctx.createRadialGradient(headX,headY,0,headX,headY,15);
+  halo.addColorStop(0,'rgba(255,255,255,1)'); halo.addColorStop(.2,'rgba(255,255,255,.95)');
+  halo.addColorStop(.45,'rgba(191,220,235,.65)'); halo.addColorStop(1,'rgba(191,220,235,0)');
+  ctx.fillStyle=halo;ctx.beginPath();ctx.arc(headX,headY,15,0,Math.PI*2);ctx.fill();
+  return { headX, headY };
+}
 function spawnComet() {
   if (!cometVisible || document.hidden) return;
-  const comet = document.createElement('i');
-  comet.className = 'comet';
   const bounds = cometField.getBoundingClientRect();
   const visibleTop = Math.max(0, -bounds.top);
   const visibleBottom = Math.min(bounds.height, window.innerHeight - bounds.top);
   const visibleHeight = visibleBottom - visibleTop;
   if (visibleHeight <= 0) { scheduleComet(); return; }
-  comet.style.left = (8 + Math.random() * 58) + '%';
-  comet.style.top = (visibleTop + visibleHeight * (.12 + Math.random() * .48)) + 'px';
-  comet.style.setProperty('--tail', (60 + Math.random() * 45) + 'px');
+  const comet = document.createElement('canvas'); comet.className = 'comet';
+  const width = Math.max(180, Math.min(320, window.innerWidth * .23));
+  const { headX, headY } = paintComet(comet, width, 120);
+  comet.style.left = (bounds.width * (.12 + Math.random() * .25) - headX) + 'px';
+  comet.style.top = (visibleTop + visibleHeight * (.28 + Math.random() * .23) - headY) + 'px';
+  comet.style.transformOrigin = headX + 'px ' + headY + 'px';
   cometField.append(comet);
-  const angle = 18 + Math.random() * 18;
-  const travel = Math.min(window.innerWidth * .35, 180 + Math.random() * 140);
-  const motion = comet.animate([
-    { transform: 'rotate(' + angle + 'deg) translateX(0)', opacity: 0 },
-    { opacity: 1, offset: .12 },
-    { opacity: .95, offset: .65 },
-    { transform: 'rotate(' + angle + 'deg) translateX(' + travel + 'px)', opacity: 0 }
-  ], { duration: 2200 + Math.random() * 700, easing: 'ease-out' });
+  const seconds = 2.8;
+  const speed = Math.max(75, Math.min(210, window.innerWidth * .17));
+  const gravity = Math.max(45, Math.min(100, window.innerHeight * .1));
+  const frames = Array.from({length:85}, (_,i) => {
+    const progress = i / 84;
+    const p = cometTrajectory(progress * seconds, speed, gravity);
+    const opacity = Math.min(1, progress / .1, (1 - progress) / .2);
+    return { offset: progress, transform: 'translate(' + p.x + 'px,' + p.y + 'px) rotate(' + p.angle + 'deg)', opacity };
+  });
+  const motion = comet.animate(frames, { duration: seconds * 1000, easing: 'linear' });
   motion.finished.then(() => comet.remove(), () => comet.remove());
   scheduleComet();
 }
