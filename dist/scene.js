@@ -177,9 +177,20 @@ class PartingClouds {
       queueScrollScene();
     };
     for (const type of ['wheel', 'pointerdown', 'pointermove', 'keydown']) window.addEventListener(type, this.onFirstInteraction, { passive: true });
+    let ambientIndex = 0;
+    let coverIndex = 0;
     // Independent positions and varied sizes remove the previous row/column pattern.
     layers.forEach((layer, index) => {
-      const intro = index < 9;
+      if (layer.dataset.coverCloud === 'true') {
+        const cloudIndex = coverIndex++;
+        layer.dataset.introCloud = 'false';
+        layer.style.setProperty('--cloud-width', (30 + Math.random() * 8) + 'vw');
+        layer.style.setProperty('--cloud-x', (cloudIndex % 4 * 19 - 3 + Math.random() * 4) + '%');
+        layer.style.setProperty('--cloud-duration', (1450 + Math.random() * 350) + 'ms');
+        layer.querySelector('canvas').dataset.seed = String(Math.random() * 100);
+        return;
+      }
+      const intro = ambientIndex++ < 9;
       const height = 16 + Math.random() * 17;
       const top = intro ? 2 + Math.random() * (46 - height) : 52 + Math.random() * (76 - height);
       layer.dataset.introCloud = String(intro);
@@ -489,8 +500,9 @@ function updateScrollScene() {
       if (partingClouds.interacted) partingClouds.part(layer);
       return;
     }
-    const bounds = layer.getBoundingClientRect();
-    if (bounds.height > 0 && bounds.top + bounds.height / 2 <= midpoint) {
+    const anchor = layer.dataset.coverCloud === 'true' ? layer.closest('.landscape-message') : layer;
+    const bounds = anchor.getBoundingClientRect();
+    if (bounds.height > 0 && bounds.top + bounds.height / 2 <= midpoint + 1) {
       partingClouds.part(layer);
     }
   });
