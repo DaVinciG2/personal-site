@@ -36,7 +36,7 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .about-button { position: absolute; z-index: 5; top: max(1.75rem, env(safe-area-inset-top)); left: clamp(1.25rem, 3vw, 3rem); padding: .8rem 1.7rem; border-radius: 999px; letter-spacing: .035em; }
 .scene-quote { position: absolute; left: 50%; width: min(86%, 1000px); margin: 0; transform: translateX(-50%); text-align: center; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(1.8rem, 3.8vw, 3.8rem); line-height: 1.22; letter-spacing: -.025em; color: #634F3E; z-index: 2; will-change: opacity; }
 .quote-intro { top: 23%; }
-.quote-landscape { top: 25%; font-size: clamp(1.65rem, 3.2vw, 3.2rem); text-shadow: 0 2px 24px var(--ivory); }
+.quote-landscape { opacity: .5; top: 25%; font-size: clamp(1.65rem, 3.2vw, 3.2rem); text-shadow: 0 2px 24px var(--ivory); }
 .scroll-cue { position: relative; z-index: 3; }
 .next-scene { position: absolute; z-index: 3; right: clamp(1.25rem, 4vw, 4rem); top: 52%; width: clamp(60px, 7vw, 92px); aspect-ratio: 1; border-radius: 50%; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1; }
 .parting-clouds { position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 130vh; overflow: clip; pointer-events: none; }
