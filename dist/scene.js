@@ -204,7 +204,7 @@ class PartingClouds {
     this.banks = layers.flatMap(layer => [...layer.querySelectorAll('canvas')].map(canvas => ({
       canvas, layer, visible: false, departing: false, disposed: false, gpu: null, lost: false,
       floatPhase: Math.random() * Math.PI * 2, floatPeriod: 6500 + Math.random() * 5500,
-      floatAmplitude: 7 + Math.random() * 5, breathAmplitude: .02 + Math.random() * .005
+      floatAmplitude: .8 + Math.random() * .6, breathAmplitude: .02 + Math.random() * .005
     })));
     this.frame = 0;
     this.lastDraw = -Infinity;
@@ -397,7 +397,7 @@ class PartingClouds {
       if (!bank.idleMotion && !bank.departing) {
         const frames = Array.from({ length: 33 }, (_, i) => {
           const phase = i / 32 * Math.PI * 2 + bank.floatPhase;
-          return { transform: 'translateY(' + Math.sin(phase) * bank.floatAmplitude + 'px) scale(' + (1 + Math.sin(phase + bank.floatPhase) * bank.breathAmplitude) + ')', offset: i / 32 };
+          return { transform: 'translateY(' + Math.sin(phase) * bank.floatAmplitude + 'vh) scale(' + (1 + Math.sin(phase + bank.floatPhase) * bank.breathAmplitude) + ')', offset: i / 32 };
         });
         bank.idleMotion = bank.canvas.animate(frames, { duration: bank.floatPeriod, iterations: Infinity, easing: 'linear' });
       }
