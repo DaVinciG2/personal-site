@@ -123,20 +123,20 @@ async function startScene() {
   let elapsed = 0;
   let previousTime = null;
   let lost = false;
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
   function render(now) {
     frame = 0;
     if (lost) return;
     try {
       resize();
-      if (previousTime !== null && !reducedMotion.matches) elapsed += Math.min((now - previousTime) / 1000, 0.1);
+      if (previousTime !== null) elapsed += Math.min((now - previousTime) / 1000, 0.1);
       previousTime = now;
       const writeIndex = 1 - readIndex;
       draw(bufferPass, targets[writeIndex].framebuffer, noiseTexture, targets[readIndex].texture, elapsed);
       draw(imagePass, null, targets[writeIndex].texture, null, elapsed);
       readIndex = writeIndex;
       status.hidden = true;
-      if (visible && !document.hidden && !reducedMotion.matches) frame = requestAnimationFrame(render);
+      if (visible && !document.hidden) frame = requestAnimationFrame(render);
     } catch (error) { showError(error); }
   }
   function schedule() {
@@ -147,7 +147,7 @@ async function startScene() {
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }).observe(surface);
   new ResizeObserver(schedule).observe(surface);
   document.addEventListener('visibilitychange', schedule);
-  reducedMotion.addEventListener('change', schedule);
+
   canvas.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
     lost = true;
