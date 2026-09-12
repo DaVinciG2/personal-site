@@ -204,7 +204,7 @@ class PartingClouds {
     this.banks = layers.flatMap(layer => [...layer.querySelectorAll('canvas')].map(canvas => ({
       canvas, layer, visible: false, departing: false, disposed: false, gpu: null, lost: false,
       floatPhase: Math.random() * Math.PI * 2, floatPeriod: 6500 + Math.random() * 5500,
-      floatAmplitude: .8 + Math.random() * .6, breathAmplitude: .02 + Math.random() * .005
+      floatAmplitude: 2 + Math.random() * 4, breathAmplitude: .02 + Math.random() * .005
     })));
     this.frame = 0;
     this.lastDraw = -Infinity;
