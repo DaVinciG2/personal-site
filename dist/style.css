@@ -64,6 +64,6 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .landscape-message .quote-landscape { position: relative; top: auto; left: auto; width: auto; flex: 1; transform: none; }
 .landscape-message .next-scene { position: relative; top: auto; right: auto; flex-shrink: 0; z-index: 4; }
 .quote-clouds { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-.quote-clouds .cloud-layer { top: 50%; height: max(220px, 220%); transform: translateY(-50%); }
-.quote-clouds .cloud-bank { width: clamp(160px, var(--cloud-width), 490px); }
+.quote-clouds .cloud-layer { top: calc(50% + var(--cloud-offset-y)); height: var(--cloud-height); transform: translateY(-50%); }
+.quote-clouds .cloud-bank { width: var(--cloud-width); }
 @media (max-width: 600px) { .landscape-message { gap: .7rem; padding: 0 1rem; } .landscape-message .quote-landscape { font-size: clamp(1.3rem, 5.4vw, 1.8rem); } }

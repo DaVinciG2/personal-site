@@ -182,12 +182,19 @@ class PartingClouds {
     // Independent positions and varied sizes remove the previous row/column pattern.
     layers.forEach((layer, index) => {
       if (layer.dataset.coverCloud === 'true') {
-        const cloudIndex = coverIndex++;
+        // Fixed baseline positions from the three browser annotations.
+        const placement = [
+          { x: 26, width: 24, y: -5, height: 22, seed: 90 },
+          { x: 15, width: 33, y: 6, height: 24, seed: 91 },
+          { x: 34, width: 43, y: 0, height: 22, seed: 92 }
+        ][coverIndex++];
         layer.dataset.introCloud = 'false';
-        layer.style.setProperty('--cloud-width', (30 + Math.random() * 8) + 'vw');
-        layer.style.setProperty('--cloud-x', (cloudIndex % 4 * 19 - 3 + Math.random() * 4) + '%');
-        layer.style.setProperty('--cloud-duration', (1450 + Math.random() * 350) + 'ms');
-        layer.querySelector('canvas').dataset.seed = String(Math.random() * 100);
+        layer.style.setProperty('--cloud-width', placement.width + '%');
+        layer.style.setProperty('--cloud-x', placement.x + '%');
+        layer.style.setProperty('--cloud-offset-y', placement.y + 'vh');
+        layer.style.setProperty('--cloud-height', placement.height + 'vh');
+        layer.style.setProperty('--cloud-duration', '1600ms');
+        layer.querySelector('canvas').dataset.seed = String(placement.seed);
         return;
       }
       const intro = ambientIndex++ < 9;
