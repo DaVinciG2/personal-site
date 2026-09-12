@@ -33,13 +33,13 @@ button { font: inherit; cursor: pointer; }
 .theme-button { border: 0; background: var(--sand); color: var(--butter); transition: color .25s, background-color .25s, box-shadow .25s; }
 .theme-button:hover { background: var(--butter); color: var(--sand); }
 button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
-.about-button { position: absolute; z-index: 5; top: max(1.75rem, env(safe-area-inset-top)); left: clamp(1.25rem, 3vw, 3rem); padding: .8rem 1.7rem; border-radius: 999px; letter-spacing: .035em; }
+.about-button { position: fixed; z-index: 5; top: max(1.75rem, env(safe-area-inset-top)); left: clamp(1.25rem, 3vw, 3rem); padding: .8rem 1.7rem; border-radius: 999px; letter-spacing: .035em; }
 .scene-quote { position: absolute; left: 50%; width: min(86%, 1000px); margin: 0; transform: translateX(-50%); text-align: center; font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: clamp(1.8rem, 3.8vw, 3.8rem); line-height: 1.22; letter-spacing: -.025em; color: #634F3E; z-index: 2; will-change: opacity; }
 .quote-intro { top: 23%; }
 .quote-landscape { opacity: .5; top: 25%; font-size: clamp(1.65rem, 3.2vw, 3.2rem); text-shadow: 0 2px 24px var(--ivory); }
 .scroll-cue { position: relative; z-index: 3; }
 .next-scene { position: absolute; z-index: 3; right: clamp(1.25rem, 4vw, 4rem); top: 52%; width: clamp(60px, 7vw, 92px); aspect-ratio: 1; border-radius: 50%; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1; }
-.parting-clouds { position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 130vh; overflow: clip; pointer-events: none; }
+.parting-clouds { position: absolute; z-index: 4; top: 0; left: 0; width: 100%; height: 130vh; overflow: clip; pointer-events: none; }
 .cloud-layer { position: absolute; top: var(--cloud-top); left: 0; width: 100%; height: var(--cloud-height); }
 .cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(100px, var(--cloud-width), 470px); height: 100%; transform: translateX(0); }
 
@@ -67,3 +67,14 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .quote-clouds .cloud-layer { top: calc(50% + var(--cloud-offset-y)); height: var(--cloud-height); transform: translateY(-50%); }
 .quote-clouds .cloud-bank { width: var(--cloud-width); }
 @media (max-width: 600px) { .landscape-message { gap: .7rem; padding: 0 1rem; } .landscape-message .quote-landscape { font-size: clamp(1.3rem, 5.4vw, 1.8rem); } }
+
+.scene-intro .quote-intro { top: 50%; transform: translate(-50%, -50%); }
+.crayon-sun { position: absolute; right: 7vw; top: 5vh; width: clamp(110px, 20vw, 250px); aspect-ratio: 1; object-fit: contain; z-index: 2; pointer-events: none; animation: sun-turn 65s linear infinite; }
+@keyframes sun-turn { to { transform: rotate(360deg); } }
+.comet-field { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.comet { position: absolute; width: 6px; height: 6px; border: 1px solid #BFDCEB; border-radius: 50%; background: white; box-shadow: 0 0 7px #BFDCEB; }
+.comet::before { content: ""; position: absolute; top: 50%; right: 3px; width: var(--tail); height: 2px; transform: translateY(-50%); background: linear-gradient(to right, transparent, #BFDCEB); border-radius: 100%; }
+.about-dialog { perspective: none; }
+.about-card { transform-origin: 0 0; backface-visibility: visible; }
+body.about-open .about-button { visibility: hidden; }
+@media (max-width: 600px) { .crayon-sun { right: 3vw; top: 10vh; width: 28vw; } }
