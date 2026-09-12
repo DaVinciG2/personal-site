@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 const files = {
   '/': ['dist/index.html', 'text/html'],
   '/index.html': ['dist/index.html', 'text/html'],
+  '/sun.png': ['dist/sun.png', 'image/png'],
   '/style.css': ['dist/style.css', 'text/css'],
   '/scene.js': ['dist/scene.js', 'text/javascript'],
   '/buffer1.txt': ['buffer1.txt', 'text/plain'],

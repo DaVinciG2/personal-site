@@ -526,24 +526,40 @@ const aboutDialog = document.querySelector('.about-dialog');
 const aboutCard = document.querySelector('.about-card');
 let closingAbout = false;
 let savedOverflow = '';
-aboutButton.addEventListener('click', () => {
+let aboutMotion = null;
+function buttonToCardTransform() {
+  const button = aboutButton.getBoundingClientRect();
+  const card = aboutCard.getBoundingClientRect();
+  return 'translate(' + (button.left - card.left) + 'px,' + (button.top - card.top) + 'px) scale(' + button.width / card.width + ',' + button.height / card.height + ')';
+}
+aboutButton.addEventListener('click', async () => {
   if (aboutDialog.open) return;
   savedOverflow = document.body.style.overflow;
   document.body.style.overflow = 'hidden';
   aboutDialog.showModal();
-  aboutCard.animate([
-    { transform: 'rotateY(-90deg) scale(.94)', opacity: 0 },
-    { transform: 'rotateY(0) scale(1)', opacity: 1 }
-  ], { duration: reducedMotion.matches ? 0 : 520, easing: 'cubic-bezier(.2,.7,.2,1)' });
+  const from = buttonToCardTransform();
+  document.body.classList.add('about-open');
+  aboutMotion = aboutCard.animate([
+    { transform: from, borderRadius: '999px' },
+    { transform: 'translate(0,0) scale(1)', borderRadius: '28px' }
+  ], { duration: 650, easing: 'cubic-bezier(.22,.75,.2,1)', fill: 'both' });
+  try { await aboutMotion.finished; } catch {}
+  if (!closingAbout) { aboutMotion?.cancel(); aboutMotion = null; }
 });
 async function closeAbout() {
   if (closingAbout || !aboutDialog.open) return;
   closingAbout = true;
-  await aboutCard.animate([
-    { transform: 'rotateY(0) scale(1)', opacity: 1 },
-    { transform: 'rotateY(90deg) scale(.94)', opacity: 0 }
-  ], { duration: reducedMotion.matches ? 0 : 360, easing: 'ease-in' }).finished;
+  const from = getComputedStyle(aboutCard).transform;
+  aboutMotion?.cancel();
+  const to = buttonToCardTransform();
+  aboutMotion = aboutCard.animate([
+    { transform: from === 'none' ? 'translate(0,0) scale(1)' : from, borderRadius: '28px' },
+    { transform: to, borderRadius: '999px' }
+  ], { duration: 520, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
+  try { await aboutMotion.finished; } catch {}
   aboutDialog.close();
+  aboutMotion?.cancel(); aboutMotion = null;
+  document.body.classList.remove('about-open');
   document.body.style.overflow = savedOverflow;
   closingAbout = false;
   aboutButton.focus({ preventScroll: true });
@@ -597,3 +613,36 @@ nextButton.addEventListener('click', async () => {
     nextButton.disabled = false;
   }
 });
+
+// Sparse compositor-animated comets; no continuous JS animation loop.
+const cometField = document.querySelector('.comet-field');
+let cometTimer = 0;
+let cometVisible = false;
+function scheduleComet() {
+  clearTimeout(cometTimer);
+  if (!cometVisible || document.hidden) return;
+  cometTimer = setTimeout(spawnComet, 3500 + Math.random() * 5000);
+}
+function spawnComet() {
+  if (!cometVisible || document.hidden) return;
+  const comet = document.createElement('i');
+  comet.className = 'comet';
+  comet.style.left = (8 + Math.random() * 65) + '%';
+  comet.style.top = (8 + Math.random() * 60) + '%';
+  comet.style.setProperty('--tail', (25 + Math.random() * 30) + 'px');
+  cometField.append(comet);
+  const angle = 18 + Math.random() * 18;
+  const travel = 120 + Math.random() * 140;
+  const motion = comet.animate([
+    { transform: 'rotate(' + angle + 'deg) translateX(0)', opacity: 0 },
+    { opacity: .85, offset: .18 },
+    { transform: 'rotate(' + angle + 'deg) translateX(' + travel + 'px)', opacity: 0 }
+  ], { duration: 1600 + Math.random() * 900, easing: 'ease-out' });
+  motion.finished.finally(() => comet.remove());
+  scheduleComet();
+}
+new IntersectionObserver(([entry]) => {
+  cometVisible = entry.isIntersecting && entry.intersectionRatio > 0;
+  scheduleComet();
+}, { threshold: .01 }).observe(cometField);
+document.addEventListener('visibilitychange', scheduleComet);
