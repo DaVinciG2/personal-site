@@ -91,3 +91,13 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .about-card { transform-origin: 0 0; backface-visibility: visible; }
 body.about-open .about-button { visibility: hidden; }
 @media (max-width: 600px) { .crayon-sun { right: 3vw; top: 10vh; width: 28vw; } }
+
+.scene-nav { position: fixed; z-index: 8; top: calc(max(1.75rem, env(safe-area-inset-top)) + 4.6rem); left: clamp(1.25rem, 3vw, 3rem); }
+.scene-nav-toggle { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 54px; height: 54px; border-radius: 18px; }
+.scene-nav-toggle span { display: block; width: 22px; height: 2px; border-radius: 2px; background: currentColor; transition: transform .2s, opacity .2s; }
+.scene-nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.scene-nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.scene-nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.scene-nav-panel { margin-top: .75rem; width: min(210px, calc(100vw - 2.5rem)); padding: .5rem; border: 1px solid rgb(199 160 126 / .38); border-radius: 20px; background: rgb(255 237 225 / .96); box-shadow: 0 12px 32px rgb(199 160 126 / .2); }
+.scene-nav-panel button { display: block; width: 100%; padding: .85rem 1rem; text-align: left; border: 0; border-radius: 12px; background: transparent; color: #72503E; }
+.scene-nav-panel button:hover, .scene-nav-panel button[aria-current="page"] { background: rgb(246 223 163 / .65); }
