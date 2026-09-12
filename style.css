@@ -59,3 +59,11 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .cloud-curtain::after { content: ''; position: absolute; top: 0; bottom: 0; right: -15vw; width: 32vw; background: radial-gradient(ellipse at 0 50%, var(--ivory) 57%, transparent 70%) 0 0 / 100% 28% repeat-y; filter: blur(12px); }
 @media (max-width: 600px) { .desktop-break { display: none; } .quote-intro { top: 25%; } .quote-landscape { top: 23%; width: 84%; } .next-scene { top: 53%; } }
 @media (prefers-reduced-motion: reduce) { .theme-button { transition: none; } }
+
+.landscape-message { position: absolute; z-index: 3; top: 50%; left: 0; width: 100%; transform: translateY(-50%); display: flex; align-items: center; gap: clamp(1rem, 3vw, 3rem); padding: 0 clamp(1.25rem, 4vw, 4rem); }
+.landscape-message .quote-landscape { position: relative; top: auto; left: auto; width: auto; flex: 1; transform: none; }
+.landscape-message .next-scene { position: relative; top: auto; right: auto; flex-shrink: 0; z-index: 4; }
+.quote-clouds { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.quote-clouds .cloud-layer { top: 50%; height: max(220px, 220%); transform: translateY(-50%); }
+.quote-clouds .cloud-bank { width: clamp(160px, var(--cloud-width), 490px); }
+@media (max-width: 600px) { .landscape-message { gap: .7rem; padding: 0 1rem; } .landscape-message .quote-landscape { font-size: clamp(1.3rem, 5.4vw, 1.8rem); } }
