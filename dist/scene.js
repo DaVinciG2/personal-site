@@ -204,7 +204,7 @@ class PartingClouds {
     this.banks = layers.flatMap(layer => [...layer.querySelectorAll('canvas')].map(canvas => ({
       canvas, layer, visible: false, departing: false, disposed: false, gpu: null, lost: false,
       floatPhase: Math.random() * Math.PI * 2, floatPeriod: 6500 + Math.random() * 5500,
-      floatAmplitude: 2 + Math.random() * 2, breathAmplitude: .02 + Math.random() * .005
+      floatAmplitude: 7 + Math.random() * 5, breathAmplitude: .02 + Math.random() * .005
     })));
     this.frame = 0;
     this.lastDraw = -Infinity;
@@ -338,10 +338,12 @@ class PartingClouds {
                            length((q - vec2(.22, .06)) / vec2(.65, .54)));
         radius = min(radius, length((q - vec2(-.04, .23)) / vec2(.47, .63)));
         float silhouette = 1.0 - radius + warp;
-        float contour = smoothstep(0.0, .35, silhouette);
-        // Continuous center-to-edge fade, with no rectangular opaque background.
-        float radial = 1.0 - smoothstep(.0, 1.05, length(q));
-        float alpha = contour * radial;
+        // Normalized distance to the irregular cloud edge, not animation progress.
+        float edgeDistance = clamp(max(radius - warp, length(q) / 1.05), 0.0, 1.0);
+        // Only a gentle 0-8% transparency rise inside; most fade occurs at 0.8-1.0.
+        float transparency = .08 * edgeDistance * edgeDistance
+                           + .92 * smoothstep(.8, 1.0, edgeDistance);
+        float alpha = 1.0 - transparency;
         vec3 shade = mix(PEACH, BUTTER, smoothstep(.28, .65, n));
         shade = mix(shade, IVORY, smoothstep(.4, .72, detail) * .85);
         shade = mix(shade, CREAM, smoothstep(.015, .12, silhouette) * .2);
@@ -480,7 +482,6 @@ class PartingClouds {
 
 // Page interactions remain independent of WebGL availability.
 const introQuote = document.querySelector('.quote-intro');
-const landscapeQuote = document.querySelector('.quote-landscape');
 const cloudLayers = [...document.querySelectorAll('.cloud-layer')];
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const partingClouds = new PartingClouds(cloudLayers);
@@ -490,7 +491,6 @@ function updateScrollScene() {
   scrollFrame = 0;
   const progress = window.scrollY / Math.max(1, window.innerHeight);
   introQuote.style.opacity = 1 - clamp01(progress / .65);
-  landscapeQuote.style.opacity = 1 - clamp01((progress - .72) / .55);
   // Trigger once per layer; Web Animations owns the time-based movement.
   // The stationary wrapper supplies the y anchor even while its banks move.
   const midpoint = window.innerHeight / 2;
