@@ -1,6 +1,27 @@
 import './tapes.js';
 const status = document.querySelector('.status');
 
+// Wait for GPU completion without blocking the main thread with gl.finish().
+function waitForSceneGPU(gl) {
+  const fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+  if (!fence) return Promise.reject(new Error('Could not prepare the cloud view.'));
+  gl.flush();
+  return new Promise((resolve, reject) => {
+    const deadline = performance.now() + 10000;
+    function poll() {
+      const state = gl.clientWaitSync(fence, 0, 0);
+      if (state === gl.ALREADY_SIGNALED || state === gl.CONDITION_SATISFIED) {
+        gl.deleteSync(fence);
+        resolve();
+      } else if (state === gl.WAIT_FAILED || gl.isContextLost() || performance.now() > deadline) {
+        gl.deleteSync(fence);
+        reject(new Error('The cloud view could not finish its first frame.'));
+      } else setTimeout(poll, 16);
+    }
+    poll();
+  });
+}
+
 async function startScene(options = {}) {
   const cloudsOnly = !!options.cloudsOnly;
   const canvas = options.canvas || document.querySelector('.scene-landscape canvas');
@@ -132,6 +153,10 @@ async function startScene(options = {}) {
   let elapsed = 0;
   let previousTime = null;
   let lost = false;
+  let firstFrameSubmitted = false;
+  let resolveReady;
+  let rejectReady;
+  const ready = new Promise((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
 
   function render(now) {
     frame = 0;
@@ -145,9 +170,15 @@ async function startScene(options = {}) {
       draw(imagePass, null, targets[writeIndex].texture, null, elapsed);
       readIndex = writeIndex;
       if (!cloudsOnly) status.hidden = true;
-      canvas.dataset.ready = 'true';
+      if (!firstFrameSubmitted) {
+        firstFrameSubmitted = true;
+        waitForSceneGPU(gl).then(() => {
+          canvas.dataset.ready = 'true';
+          resolveReady();
+        }, error => { rejectReady(error); handleError(error); });
+      }
       if (visible && !document.hidden) frame = requestAnimationFrame(render);
-    } catch (error) { handleError(error); }
+    } catch (error) { rejectReady(error); handleError(error); }
   }
   function schedule() {
     cancelAnimationFrame(frame);
@@ -162,8 +193,11 @@ async function startScene(options = {}) {
     event.preventDefault();
     lost = true;
     cancelAnimationFrame(frame);
-    handleError(new Error('The graphics connection was interrupted. Reload to restore the landscape.'));
+    const error = new Error('The graphics connection was interrupted. Reload to restore the landscape.');
+    rejectReady(error);
+    handleError(error);
   });
+  return ready;
 }
 
 function showError(error) {
@@ -176,13 +210,19 @@ startScene().catch(showError);
 // Allocate the second view only when its scene is first visited.
 const windowView = document.querySelector('.archive-window-view');
 const windowCanvas = windowView.querySelector('canvas');
+let windowReady;
+function prepareWindowView() {
+  // Route changes and the visibility observer share one initialization.
+  return windowReady ??= startScene({ canvas: windowCanvas, surface: windowView, cloudsOnly: true }).catch(error => {
+    windowCanvas.dataset.ready = 'false';
+    console.warn('Window cloud view unavailable:', error);
+    // Retain the CSS window background and allow navigation after a GPU failure.
+  });
+}
 const windowStart = new IntersectionObserver(([entry]) => {
   if (!entry.isIntersecting) return;
   windowStart.disconnect();
-  startScene({ canvas: windowCanvas, surface: windowView, cloudsOnly: true }).catch(error => {
-    windowCanvas.dataset.ready = 'false';
-    console.warn('Window cloud view unavailable:', error);
-  });
+  prepareWindowView();
 });
 windowStart.observe(windowView);
 
@@ -707,6 +747,10 @@ async function navigateScene(destination) {
     await cover.finished;
     location.hash = destination;
     applyRoute();
+    if (destination === 'scene2') await prepareWindowView();
+    // Allow layout, carousel observers and the first GPU frame to reach the
+    // compositor while the curtain still fully covers the new scene.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     // Keep the same cloud canvas above the new scene until its entrance completes.
     reveal = curtain.animate([
       { transform: 'translateX(-10%)', opacity: 1 },
