@@ -39,9 +39,9 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .quote-landscape { top: 25%; font-size: clamp(1.65rem, 3.2vw, 3.2rem); text-shadow: 0 2px 24px var(--ivory); }
 .scroll-cue { position: relative; z-index: 3; }
 .next-scene { position: absolute; z-index: 3; right: clamp(1.25rem, 4vw, 4rem); top: 52%; width: clamp(60px, 7vw, 92px); aspect-ratio: 1; border-radius: 50%; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1; }
-.parting-clouds { position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 120vh; overflow: clip; pointer-events: none; }
+.parting-clouds { position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 130vh; overflow: clip; pointer-events: none; }
 .cloud-layer { position: absolute; top: var(--cloud-top); left: 0; width: 100%; height: var(--cloud-height); }
-.cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(140px, var(--cloud-width), 430px); height: 100%; transform: translateX(0); }
+.cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(100px, var(--cloud-width), 470px); height: 100%; transform: translateX(0); }
 
 
 .about-dialog { border: 0; padding: 0; background: transparent; color: #493B2E; width: min(88vw, 520px); max-height: 85dvh; overflow: visible; perspective: 1200px; }
