@@ -572,16 +572,43 @@ const firstScene = document.querySelector('.scene');
 const secondScene = document.querySelector('.scene-two');
 const nextButton = document.querySelector('.next-scene');
 const transition = document.querySelector('.cloud-transition');
+const sceneNav = document.querySelector('.scene-nav');
+const sceneNavToggle = document.querySelector('.scene-nav-toggle');
+const sceneNavPanel = document.querySelector('.scene-nav-panel');
+const sceneChoices = [...sceneNavPanel.querySelectorAll('[data-scene]')];
+function closeSceneNav(restoreFocus = false) {
+  sceneNavPanel.hidden = true;
+  sceneNavToggle.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) sceneNavToggle.focus();
+}
+sceneNavToggle.addEventListener('click', () => {
+  const open = sceneNavPanel.hidden;
+  sceneNavPanel.hidden = !open;
+  sceneNavToggle.setAttribute('aria-expanded', String(open));
+  if (open) sceneChoices[0].focus();
+});
+document.addEventListener('pointerdown', event => { if (!sceneNav.contains(event.target)) closeSceneNav(); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !sceneNavPanel.hidden) closeSceneNav(true); });
+sceneChoices.forEach(button => button.addEventListener('click', () => navigateScene(button.dataset.scene)));
 let navigating = false;
 function applyRoute() {
   const isSceneTwo = location.hash === '#scene2';
   firstScene.hidden = isSceneTwo;
   secondScene.hidden = !isSceneTwo;
   aboutButton.hidden = isSceneTwo;
+  sceneChoices.forEach(button => {
+    if (button.dataset.scene === (isSceneTwo ? 'scene2' : 'scene1')) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+  closeSceneNav();
   document.title = isSceneTwo ? 'scene2 — Cloud Train' : 'Cloud Train';
   if (isSceneTwo) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     secondScene.querySelector('h1').focus({ preventScroll: true });
+  }
+  if (!isSceneTwo && location.hash === '#scene1') {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    introQuote.focus({ preventScroll: true });
   }
   queueScrollScene();
 }
@@ -623,8 +650,10 @@ function paintTransitionClouds(canvas) {
   }
   ctx.shadowBlur = 0;
 }
-nextButton.addEventListener('click', async () => {
-  if (navigating) return;
+async function navigateScene(destination) {
+  if (navigating || !['scene1', 'scene2'].includes(destination)) return;
+  closeSceneNav();
+  sceneNavToggle.disabled = true;
   navigating = true;
   nextButton.disabled = true;
   const curtain = document.createElement('canvas');
@@ -644,7 +673,7 @@ nextButton.addEventListener('click', async () => {
       { transform: 'translateX(0)', offset: 1 }
     ], { duration: 4400, fill: 'forwards' });
     await cover.finished;
-    location.hash = 'scene2';
+    location.hash = destination;
     applyRoute();
   } finally {
     window.removeEventListener('resize', resizeCurtain);
@@ -655,5 +684,7 @@ nextButton.addEventListener('click', async () => {
     document.body.style.overflow = oldOverflow;
     navigating = false;
     nextButton.disabled = false;
+    sceneNavToggle.disabled = false;
   }
-});
+}
+nextButton.addEventListener('click', () => navigateScene('scene2'));

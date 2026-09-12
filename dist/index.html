@@ -10,10 +10,17 @@
   </head>
   <body>
     <button class="about-button theme-button" type="button" aria-haspopup="dialog">about me</button>
+    <nav class="scene-nav" aria-label="Scene navigation">
+      <button class="scene-nav-toggle theme-button" type="button" aria-label="Choose scene" aria-expanded="false" aria-controls="scene-nav-panel"><span></span><span></span><span></span></button>
+      <div class="scene-nav-panel" id="scene-nav-panel" hidden>
+        <button type="button" data-scene="scene1">Scene 1</button>
+        <button type="button" data-scene="scene2">Scene 2</button>
+      </div>
+    </nav>
     <main class="scene" aria-label="Cloud train scene">
       <div class="scene-intro">
         <img class="crayon-sun" src="./sun.png" alt="" aria-hidden="true">
-        <h1 class="scene-quote quote-intro">We live in the gap of<br class="desktop-break"> reality and fantasy.</h1>
+        <h1 class="scene-quote quote-intro" tabindex="-1">We live in the gap of<br class="desktop-break"> reality and fantasy.</h1>
       </div>
       <section class="scene-landscape" id="landscape" aria-label="Animated cloud landscape with a train">
         <canvas aria-label="A train crossing a bridge through layers of moving clouds" role="img"></canvas>
