@@ -144,7 +144,7 @@ async function startScene() {
     previousTime = null;
     if (!lost && visible && !document.hidden) frame = requestAnimationFrame(render);
   }
-  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }).observe(surface);
+  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting && entry.intersectionRatio > 0; schedule(); }, { threshold: .001 }).observe(surface);
   new ResizeObserver(schedule).observe(surface);
   document.addEventListener('visibilitychange', schedule);
 
@@ -207,11 +207,20 @@ class PartingClouds {
     this.observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const bank = this.banks.find(bank => bank.canvas === entry.target);
-        if (bank) bank.visible = entry.isIntersecting;
+        if (bank) {
+          bank.visible = entry.isIntersecting && entry.intersectionRatio > 0;
+          if (bank.idleMotion) bank.visible ? bank.idleMotion.play() : bank.idleMotion.pause();
+        }
+      }
+      this.schedule();
+    }, { threshold: .001 });
+    this.resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const bank = this.banks.find(bank => bank.canvas === entry.target);
+        if (bank) bank.renderedWidth = null;
       }
       this.schedule();
     });
-    this.resizeObserver = new ResizeObserver(this.schedule);
     this.banks.forEach(bank => {
       this.observer.observe(bank.canvas);
       this.resizeObserver.observe(bank.canvas);
@@ -252,8 +261,15 @@ class PartingClouds {
     // Draw the first frame before starting the transform; never slide an empty canvas.
     if (!this.source && !this.failed) return;
     for (const bank of this.banks.filter(bank => bank.layer === layer && !bank.disposed)) {
-      this.draw(bank, performance.now());
+      if (!bank.renderedWidth && !bank.failed) {
+        bank.pendingDeparture = true;
+        this.schedule();
+        return;
+      }
       const restingTransform = getComputedStyle(bank.canvas).transform;
+      bank.canvas.style.transform = restingTransform;
+      bank.idleMotion?.cancel();
+      bank.idleMotion = null;
       bank.departing = true;
       const bounds = bank.canvas.getBoundingClientRect();
       const distance = bank.canvas.classList.contains('cloud-left')
@@ -346,7 +362,7 @@ class PartingClouds {
       const { gl, uniforms } = gpu;
       const width = bank.canvas.clientWidth, height = bank.canvas.clientHeight;
       if (!width || !height) return;
-      const scale = Math.min(devicePixelRatio || 1, 1, 720 / width, 360 / height);
+      const scale = Math.min(devicePixelRatio || 1, 1, 420 / width, 220 / height);
       const w = Math.max(1, Math.round(width * scale)), h = Math.max(1, Math.round(height * scale));
       if (bank.renderedWidth === w && bank.renderedHeight === h) return;
       bank.canvas.width = w; bank.canvas.height = h;
@@ -365,6 +381,13 @@ class PartingClouds {
       bank.context.clearRect(0, 0, w, h);
       bank.context.drawImage(this.renderCanvas, 0, 0);
       bank.renderedWidth = w; bank.renderedHeight = h;
+      if (!bank.idleMotion && !bank.departing) {
+        const frames = Array.from({ length: 33 }, (_, i) => {
+          const phase = i / 32 * Math.PI * 2 + bank.floatPhase;
+          return { transform: 'translateY(' + Math.sin(phase) * bank.floatAmplitude + 'px) scale(' + (1 + Math.sin(phase + bank.floatPhase) * bank.breathAmplitude) + ')', offset: i / 32 };
+        });
+        bank.idleMotion = bank.canvas.animate(frames, { duration: bank.floatPeriod, iterations: Infinity, easing: 'linear' });
+      }
     } catch (error) { bank.failed = true; console.error(error); }
   }
   schedule() {
@@ -373,32 +396,27 @@ class PartingClouds {
   tick(now) {
     this.frame = 0;
     if (this.closed || document.hidden) return;
-    // Loading can finish after the midpoint was crossed.
-    queueScrollScene();
-    const shouldDraw = now - this.lastDraw >= 1000 / 30;
-    if (shouldDraw) this.lastDraw = now;
+    // Rasterize at most one visible cloud per frame; settled clouds need no JS loop.
+    let rendered = false;
     for (const bank of this.banks) {
       if (bank.disposed) continue;
-      if (!bank.departing && bank.visible) {
-        const phase = now / bank.floatPeriod * Math.PI * 2 + bank.floatPhase;
-        const lift = Math.sin(phase) * bank.floatAmplitude;
-        const scale = 1 + Math.sin(phase * .83 + bank.floatPhase) * bank.breathAmplitude;
-        bank.canvas.style.transform = 'translateY(' + lift + 'px) scale(' + scale + ')';
-      }
-      if (bank.departing) {
+      if (bank.departing && bank.motionFinished) {
         const bounds = bank.canvas.getBoundingClientRect();
-        bank.movingInLayout = bounds.width > 0;
-        // Horizontal bounds only: scrolling offscreen is not permission to unload.
-        if (bank.motionFinished && bounds.width > 0 && (bounds.right <= 0 || bounds.left >= document.documentElement.clientWidth)) {
+        if (bounds.width > 0 && (bounds.right <= 0 || bounds.left >= document.documentElement.clientWidth)) {
           this.dispose(bank);
           continue;
         }
       }
-      if (shouldDraw && bank.visible) this.draw(bank, now);
+      if (!rendered && this.source && bank.visible && !bank.failed && !bank.renderedWidth) {
+        this.draw(bank, now);
+        rendered = true;
+        queueScrollScene();
+      }
     }
     if (this.banks.every(bank => bank.disposed)) { this.close(); return; }
-    if (this.banks.some(bank => !bank.disposed && ((bank.departing && bank.movingInLayout) || (bank.visible && !bank.failed && !bank.lost)))) this.schedule();
+    if (this.source && this.banks.some(bank => !bank.disposed && bank.visible && !bank.failed && !bank.renderedWidth)) this.schedule();
   }
+
   dispose(bank) {
     if (bank.disposed) return;
     bank.disposed = true;
@@ -415,6 +433,8 @@ class PartingClouds {
       if (gpu.program) gl.deleteProgram(gpu.program);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     }
+    bank.idleMotion?.cancel();
+    bank.idleMotion = null;
     bank.motion?.cancel();
     bank.motion = null;
     canvas.width = canvas.height = 1;
