@@ -72,8 +72,7 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .scene-two h1 { font: 400 2.5rem Georgia, serif; }
 .cloud-transition { position: fixed; inset: 0; z-index: 20; pointer-events: none; visibility: hidden; overflow: hidden; }
 .cloud-transition.active { visibility: visible; pointer-events: auto; }
-.cloud-curtain { position: absolute; top: -20%; left: -45%; width: 160%; height: 140%; background: var(--ivory); transform: translateX(-110%); }
-.cloud-curtain::after { content: ''; position: absolute; top: 0; bottom: 0; right: -15vw; width: 32vw; background: radial-gradient(ellipse at 0 50%, var(--ivory) 57%, transparent 70%) 0 0 / 100% 28% repeat-y; filter: blur(12px); }
+.cloud-curtain { position: absolute; top: -20vh; left: 0; width: 240vw; height: 140vh; transform: translateX(-100%); }
 @media (max-width: 600px) { .desktop-break { display: none; } .quote-intro { top: 25%; } .quote-landscape { top: 23%; width: 84%; } .next-scene { top: 53%; } }
 @media (prefers-reduced-motion: reduce) { .theme-button { transition: none; } }
 
