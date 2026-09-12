@@ -41,9 +41,7 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .next-scene { position: absolute; z-index: 3; right: clamp(1.25rem, 4vw, 4rem); top: 52%; width: clamp(60px, 7vw, 92px); aspect-ratio: 1; border-radius: 50%; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1; }
 .parting-clouds { position: absolute; z-index: 1; top: 0; left: 0; width: 100%; height: 120vh; overflow: clip; pointer-events: none; }
 .cloud-layer { position: absolute; top: var(--cloud-top); left: 0; width: 100%; height: var(--cloud-height); }
-.cloud-layer.is-parted .cloud-left { transform: translateX(calc(-100vw - 100%)); }
-.cloud-layer.is-parted .cloud-right { transform: translateX(calc(100vw + 100%)); }
-.cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(140px, var(--cloud-width), 430px); height: 100%; transition: transform var(--cloud-duration, 1100ms) cubic-bezier(.45, 0, .15, 1); }
+.cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(140px, var(--cloud-width), 430px); height: 100%; transform: translateX(0); }
 
 
 .about-dialog { border: 0; padding: 0; background: transparent; color: #493B2E; width: min(88vw, 520px); max-height: 85dvh; overflow: visible; perspective: 1200px; }
@@ -62,4 +60,3 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 @media (max-width: 600px) { .desktop-break { display: none; } .quote-intro { top: 25%; } .quote-landscape { top: 23%; width: 84%; } .next-scene { top: 53%; } }
 @media (prefers-reduced-motion: reduce) { .theme-button { transition: none; } }
 
-@media (prefers-reduced-motion: reduce) { .cloud-bank { transition-duration: 0ms; } }
