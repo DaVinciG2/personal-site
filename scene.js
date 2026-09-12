@@ -177,21 +177,23 @@ class PartingClouds {
       queueScrollScene();
     };
     for (const type of ['wheel', 'pointerdown', 'pointermove', 'keydown']) window.addEventListener(type, this.onFirstInteraction, { passive: true });
-    // Eight rows with three jittered columns: varied silhouettes without giant slabs.
+    // Independent positions and varied sizes remove the previous row/column pattern.
     layers.forEach((layer, index) => {
-      const row = Math.floor(index / 3), column = index % 3;
-      const height = 18 + Math.random() * 12;
-      const top = row < 3 ? row * 9 + Math.random() * 2 : 50 + (row - 3) * 12 + Math.random() * 2;
-      layer.dataset.introCloud = String(row < 3);
+      const intro = index < 9;
+      const height = 16 + Math.random() * 17;
+      const top = intro ? 2 + Math.random() * (46 - height) : 52 + Math.random() * (76 - height);
+      layer.dataset.introCloud = String(intro);
       layer.style.setProperty('--cloud-top', top + 'vh');
-      layer.style.setProperty('--cloud-height', Math.min(height, (row < 3 ? 50 : 130) - top) + 'vh');
-      layer.style.setProperty('--cloud-width', (25 + Math.random() * 14) + 'vw');
-      layer.style.setProperty('--cloud-x', (column * 29 - 3 + Math.random() * 9) + '%');
+      layer.style.setProperty('--cloud-height', height + 'vh');
+      layer.style.setProperty('--cloud-width', (21 + Math.random() * 23) + 'vw');
+      layer.style.setProperty('--cloud-x', (-6 + Math.random() * 80) + '%');
       layer.style.setProperty('--cloud-duration', (1250 + Math.random() * 550) + 'ms');
       layer.querySelector('canvas').dataset.seed = String(Math.random() * 100);
     });
     this.banks = layers.flatMap(layer => [...layer.querySelectorAll('canvas')].map(canvas => ({
-      canvas, layer, visible: false, departing: false, disposed: false, gpu: null, lost: false
+      canvas, layer, visible: false, departing: false, disposed: false, gpu: null, lost: false,
+      floatPhase: Math.random() * Math.PI * 2, floatPeriod: 6500 + Math.random() * 5500,
+      floatAmplitude: 2 + Math.random() * 2, breathAmplitude: .02 + Math.random() * .005
     })));
     this.frame = 0;
     this.lastDraw = -Infinity;
@@ -251,6 +253,7 @@ class PartingClouds {
     if (!this.source && !this.failed) return;
     for (const bank of this.banks.filter(bank => bank.layer === layer && !bank.disposed)) {
       this.draw(bank, performance.now());
+      const restingTransform = getComputedStyle(bank.canvas).transform;
       bank.departing = true;
       const bounds = bank.canvas.getBoundingClientRect();
       const distance = bank.canvas.classList.contains('cloud-left')
@@ -259,8 +262,8 @@ class PartingClouds {
       const duration = parseFloat(getComputedStyle(layer).getPropertyValue('--cloud-duration')) || 1300;
       bank.motionFinished = false;
       bank.motion = bank.canvas.animate([
-        { transform: 'translateX(0px)' },
-        { transform: 'translateX(' + distance + 'px)' }
+        { transform: restingTransform === 'none' ? 'translateY(0px) scale(1)' : restingTransform },
+        { transform: 'translateX(' + distance + 'px) ' + (restingTransform === 'none' ? '' : restingTransform) }
       ], { duration, easing: 'cubic-bezier(.45,0,.15,1)', fill: 'forwards' });
       bank.motion.finished.then(() => {
         bank.motionFinished = true;
@@ -376,6 +379,12 @@ class PartingClouds {
     if (shouldDraw) this.lastDraw = now;
     for (const bank of this.banks) {
       if (bank.disposed) continue;
+      if (!bank.departing && bank.visible) {
+        const phase = now / bank.floatPeriod * Math.PI * 2 + bank.floatPhase;
+        const lift = Math.sin(phase) * bank.floatAmplitude;
+        const scale = 1 + Math.sin(phase * .83 + bank.floatPhase) * bank.breathAmplitude;
+        bank.canvas.style.transform = 'translateY(' + lift + 'px) scale(' + scale + ')';
+      }
       if (bank.departing) {
         const bounds = bank.canvas.getBoundingClientRect();
         bank.movingInLayout = bounds.width > 0;
