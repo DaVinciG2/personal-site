@@ -61,7 +61,7 @@ button:focus-visible { outline: 2px solid #634F3E; outline-offset: 5px; }
 .cloud-bank { position: absolute; left: var(--cloud-x); width: clamp(100px, var(--cloud-width), 470px); height: 100%; transform: translateX(0); }
 
 
-.about-dialog { border: 0; padding: 0; background: transparent; color: #493B2E; width: min(88vw, 520px); max-height: 85dvh; overflow: visible; perspective: 1200px; }
+.about-dialog { border: 0; padding: 0; background: transparent; color: #493B2E; width: min(92vw, 860px); max-height: 85dvh; overflow: visible; perspective: 1200px; }
 .about-dialog::backdrop { background: rgb(99 79 62 / .22); backdrop-filter: blur(6px); }
 .about-card { position: relative; padding: clamp(2rem, 6vw, 3.5rem); border-radius: 28px; background: var(--sand); box-shadow: 0 24px 100px rgb(99 79 62 / .2); transform-origin: center; backface-visibility: hidden; max-height: 85dvh; overflow: auto; }
 .card-eyebrow { font-size: .65rem; letter-spacing: .22em; margin: 0 0 2rem; }
@@ -113,3 +113,12 @@ body.about-open .about-button { visibility: hidden; }
 .scene-intro .intro-copy .quote-intro { position: static; width: 100%; transform: none; }
 .intro-subtext { max-width: 620px; margin: 22px auto 0; color: #806a55; font: 400 clamp(.9rem, 1.4vw, 1.1rem)/1.65 Georgia, 'Times New Roman', serif; text-wrap: pretty; }
 @media (max-width: 600px) { .intro-subtext { margin-top: 18px; max-width: 34ch; } }
+
+/* Keep the complete travel portrait alongside the introduction. */
+.about-profile { display: grid; grid-template-columns: minmax(0, 230px) minmax(0, 1fr); align-items: start; gap: clamp(24px, 4vw, 40px); }
+.about-photo { display: block; width: 100%; height: auto; border: 6px solid var(--ivory); border-radius: 12px; box-shadow: 0 8px 24px rgb(73 59 46 / .16); }
+@media (max-width: 640px) {
+  .about-profile { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .about-photo { width: min(100%, 190px); margin-inline: auto; }
+  .about-card { padding: 2rem 1.5rem; }
+}

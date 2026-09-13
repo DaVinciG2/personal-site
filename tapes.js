@@ -179,9 +179,9 @@ const tapes = [
     [
       "03 / INTERACTION & FEEDBACK",
       "Refining the Experience",
-      "During an indie-game optimization internship, I contributed to improving user experience and balance through repeated playtesting.",
+      "During my indie-game optimization internship at Ernst & Young Limited, I contributed to improving user experience and balance through repeated playtesting.",
       {
-        "meta": "Game optimization internship · Lead game optimizer",
+        "meta": "Ernst & Young Limited · Game optimization internship · Lead game optimizer",
         "paragraphs": [
           "My work included recording bugs and giving feedback on game mechanics and narrative flow. Repeated playtesting provided a practical setting for noticing points of friction and communicating possible improvements.",
           "This work connects with the storytelling interests I explore in Visual Novel Horizon. Here, the focus turns to interaction: how the experience unfolds as someone plays, and how feedback can inform its refinement."
