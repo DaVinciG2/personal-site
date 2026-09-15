@@ -1,4 +1,5 @@
 import './tapes.js';
+import { syncMobius } from './mobius.js';
 const status = document.querySelector('.status');
 
 // Wait for GPU completion without blocking the main thread with gl.finish().
@@ -634,6 +635,24 @@ aboutDialog.addEventListener('cancel', event => { event.preventDefault(); closeA
 
 const firstScene = document.querySelector('.scene');
 const secondScene = document.querySelector('.scene-two');
+const thirdScene = document.querySelector('.scene-three');
+const sceneNames = { scene1: 'The Landscape Within', scene2: 'The Carriage of Stories', scene3: 'The Engine Room' };
+const pageSceneButtons = [];
+firstScene.setAttribute('aria-label', sceneNames.scene1);
+for (const [surface, previous, next] of [[secondScene, 'scene1', 'scene3'], [thirdScene, 'scene2', 'scene1']]) {
+  const nav = document.createElement('nav');
+  nav.className = 'page-scene-nav'; nav.setAttribute('aria-label', 'Continue the journey');
+  for (const [destination, direction] of [[previous, 'previous'], [next, 'next']]) {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'page-scene-link theme-button';
+    button.dataset.destination = destination;
+    button.setAttribute('aria-label', (direction === 'previous' ? 'Previous: ' : 'Next: ') + sceneNames[destination]);
+    button.innerHTML = '<span class="page-scene-arrow" aria-hidden="true">' + (direction === 'previous' ? '←' : '→') + '</span><span><small>' + (direction === 'previous' ? 'PREVIOUS' : next === 'scene1' ? 'BACK TO THE BEGINNING' : 'NEXT CHAPTER') + '</small>' + sceneNames[destination] + '</span>';
+    button.addEventListener('click', () => navigateScene(destination)); nav.append(button); pageSceneButtons.push(button);
+  }
+  surface.append(nav);
+  surface.setAttribute('aria-label', sceneNames[surface === firstScene ? 'scene1' : surface === secondScene ? 'scene2' : 'scene3']);
+}
+
 const nextButton = document.querySelector('.next-scene');
 const transition = document.querySelector('.cloud-transition');
 const sceneNav = document.querySelector('.scene-nav');
@@ -657,20 +676,27 @@ sceneChoices.forEach(button => button.addEventListener('click', () => navigateSc
 let navigating = false;
 function applyRoute() {
   const isSceneTwo = location.hash === '#scene2';
-  firstScene.hidden = isSceneTwo;
+  const isSceneThree = location.hash === '#scene3';
+  firstScene.hidden = isSceneTwo || isSceneThree;
+  thirdScene.hidden = !isSceneThree;
+  syncMobius(isSceneThree);
   secondScene.hidden = !isSceneTwo;
   aboutButton.hidden = false;
   sceneChoices.forEach(button => {
-    if (button.dataset.scene === (isSceneTwo ? 'scene2' : 'scene1')) button.setAttribute('aria-current', 'page');
+    if (button.dataset.scene === (isSceneThree ? 'scene3' : isSceneTwo ? 'scene2' : 'scene1')) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
   });
   closeSceneNav();
-  document.title = isSceneTwo ? 'scene2 — Cloud Train' : 'Cloud Train';
+  document.title = sceneNames[isSceneThree ? 'scene3' : isSceneTwo ? 'scene2' : 'scene1'] + ' — Zack Xu';
+  if (isSceneThree) {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    thirdScene.querySelector('h1').focus({ preventScroll: true });
+  }
   if (isSceneTwo) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     secondScene.querySelector('h1').focus({ preventScroll: true });
   }
-  if (!isSceneTwo && location.hash === '#scene1') {
+  if (!isSceneTwo && !isSceneThree && location.hash === '#scene1') {
     window.scrollTo({ top: 0, behavior: 'instant' });
     introQuote.focus({ preventScroll: true });
   }
@@ -722,11 +748,12 @@ function paintTransitionClouds(canvas) {
   ctx.globalCompositeOperation = 'source-over';
 }
 async function navigateScene(destination) {
-  if (navigating || !['scene1', 'scene2'].includes(destination)) return;
+  if (navigating || !['scene1', 'scene2', 'scene3'].includes(destination)) return;
   closeSceneNav();
   sceneNavToggle.disabled = true;
   navigating = true;
   nextButton.disabled = true;
+  pageSceneButtons.forEach(button => button.disabled = true);
   const curtain = document.createElement('canvas');
   curtain.className = 'cloud-curtain';
   transition.append(curtain);
@@ -767,6 +794,7 @@ async function navigateScene(destination) {
     document.body.style.overflow = oldOverflow;
     navigating = false;
     nextButton.disabled = false;
+    pageSceneButtons.forEach(button => button.disabled = false);
     sceneNavToggle.disabled = false;
   }
 }

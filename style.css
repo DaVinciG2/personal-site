@@ -122,3 +122,157 @@ body.about-open .about-button { visibility: hidden; }
   .about-photo { width: min(100%, 190px); margin-inline: auto; }
   .about-card { padding: 2rem 1.5rem; }
 }
+
+/* Scene 3: a continuous typographic surface. */
+.scene-three { position: relative; height: 100dvh; min-height: 540px; overflow: hidden; background: radial-gradient(ellipse at 50% 48%, #fff8e7 0%, #ffede1 70%); }
+.mobius-heading { position: absolute; top: 9%; left: 20%; right: 20%; text-align: center; pointer-events: none; }
+.mobius-heading p { font-size: .62rem; letter-spacing: .24em; color: #95785f; }
+.mobius-heading h1 { margin: 1rem 0 0; font: italic 400 clamp(1.5rem, 3vw, 2.6rem)/1.2 Georgia, serif; color: #735441; }
+.mobius-canvas { position: absolute; inset: 20% 0 12%; height: 68%; width: 100%; touch-action: none; cursor: grab; }
+.mobius-canvas:active { cursor: grabbing; }
+.mobius-canvas:focus-visible { outline: 1px solid #b68b6e; outline-offset: -12px; border-radius: 40%; }
+.mobius-hint, .mobius-note { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none; color: #967a62; }
+.mobius-hint { bottom: 7%; font-size: .6rem; letter-spacing: .23em; }
+.mobius-hint span { display: inline-block; margin-right: .7rem; font-size: 1rem; }
+.mobius-note { bottom: 2.5%; font: italic .85rem Georgia, serif; }
+.mobius-error { position: absolute; top: 48%; width: 100%; padding: 2rem; text-align: center; }
+@media (max-width: 600px) { .mobius-heading { top: 23%; left: 8%; right: 8%; } .mobius-heading p { font-size: .52rem; } .mobius-canvas { top: 32%; height: 49%; } }
+
+.mobius-heading h1:focus { outline: none; }
+
+/* Interest panels belong to Scene 3 and do not share cassette components. */
+.interest-dialog { border: 0; padding: 0; width: min(680px, 90vw); max-width: none; max-height: 88dvh; background: transparent; color: #634634; overflow: visible; }
+.interest-dialog::backdrop { background: #65432938; backdrop-filter: blur(12px); }
+.interest-card { position: relative; padding: clamp(30px, 6vw, 64px); border: 1px solid #fff9e3; border-radius: 32px; background: radial-gradient(ellipse at 90% 10%, #fff9df, #f5d9ba); box-shadow: 0 28px 100px #64432e35; max-height: 88dvh; overflow: auto; transform-origin: center; }
+.interest-close { position: absolute; right: 22px; top: 22px; width: 42px; height: 42px; border: 1px solid #9a75533d; border-radius: 50%; background: #fff7df80; color: inherit; font-size: 25px; transition: background .2s, transform .2s; }
+.interest-close:hover { background: #fff8e4; transform: rotate(90deg); }
+.interest-index { font-size: 10px; letter-spacing: .25em; margin: 0 0 36px; }
+.interest-symbol { font: 64px/1 Georgia, serif; color: #a66c43; margin-bottom: 20px; }
+.interest-card h2 { font: italic 400 clamp(48px, 9vw, 88px)/1 Georgia, serif; letter-spacing: -.045em; margin: 0 0 24px; }
+.interest-subtitle { font: 22px/1.4 Georgia, serif; margin: 0 0 18px; }
+.interest-description { max-width: 38ch; font: 15px/1.8 Georgia, serif; color: #8a6a52; margin: 0; }
+.interest-dialog[data-topic="baseball"] .interest-card { background: radial-gradient(ellipse at 90% 10%, #fbf5de, #dce1bf); }
+.interest-dialog[data-topic="gaming"] .interest-card { background: radial-gradient(ellipse at 90% 10%, #fff3e7, #e4cbd4); }
+.interest-access { position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
+.interest-access:not(:focus-within) { width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.interest-access button { border: 1px solid #bc9874; border-radius: 99px; padding: 8px 16px; background: #fff3de; color: #634634; }
+@media (max-width: 600px) { .mobius-hint { font-size: .48rem; letter-spacing: .12em; } }
+
+.scene-three { isolation: isolate; }
+.spectral-background { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+/* Gaming reads as a personal illustrated essay inside its own interest panel. */
+.interest-dialog.interest-essay { width: min(920px, 94vw); }
+.interest-dialog[data-topic="gaming"] .interest-card { background: linear-gradient(145deg, #fff6e7, #f6e9df 70%, #eeded9); padding: clamp(26px, 5vw, 64px); scrollbar-width: thin; scrollbar-color: #bca084 transparent; overscroll-behavior: contain; }
+.interest-dialog.interest-essay .interest-close { position: sticky; float: right; top: 0; margin: -8px -10px 0 12px; z-index: 2; background: #fff5e7f2; backdrop-filter: blur(8px); }
+.interest-dialog.interest-essay .interest-index { margin-bottom: 24px; }
+.interest-dialog.interest-essay .interest-subtitle { color: #90715c; font-style: italic; padding-bottom: 28px; border-bottom: 1px solid #b69a7b40; margin-bottom: 30px; }
+.gaming-narrative { color: #624c3e; font: 17px/1.85 Georgia, 'Times New Roman', serif; }
+.gaming-narrative p { margin: 0 0 1.3em; }
+.gaming-narrative .gaming-lead { font-size: clamp(21px, 3vw, 26px); line-height: 1.5; color: #76513c; }
+.gaming-narrative cite { font-style: italic; }
+.gaming-narrative figure { margin: 0; }
+.gaming-narrative img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.gaming-narrative figcaption { font: italic 12px/1.6 Georgia, serif; color: #927962; margin-top: 10px; }
+.gaming-memory { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 28px; align-items: center; margin: 38px 0; }
+.gaming-memory h3, .gaming-section-heading { font: italic 400 25px/1.3 Georgia, serif; color: #76513c; margin: 0 0 18px; }
+.gaming-memory p { font-size: 16px; margin: 0; }
+.gaming-portrait { padding: 10px; background: #fffbef; box-shadow: 0 7px 22px #6f513a13; border-radius: 14px; transform: rotate(-2deg); }
+.gaming-portrait img { border-radius: 6px; }
+.gaming-portrait figcaption { padding: 0 4px 2px; }
+.gaming-narrative .gaming-landscape { margin: 26px 0 30px; }
+.gaming-divider { text-align: center; color: #bc9979; margin: 35px 0; font-size: 20px; }
+.gaming-ending { border-top: 1px solid #b69a7b40; margin-top: 36px; padding: 30px 0 8px; text-align: center; }
+.gaming-ending p:last-child { font-style: italic; font-size: clamp(21px, 3vw, 27px); line-height: 1.65; margin-bottom: 0; color: #76513c; }
+@media (max-width: 640px) {
+  .gaming-narrative { font-size: 16px; line-height: 1.8; }
+  .gaming-memory { grid-template-columns: minmax(0, 1fr); gap: 24px; margin-block: 30px; }
+  .gaming-portrait { width: min(100%, 360px); justify-self: center; }
+  .gaming-memory h3, .gaming-section-heading { font-size: 23px; }
+  .interest-dialog[data-topic="gaming"] .interest-card { padding: 26px 22px; }
+}
+
+.interest-dialog[data-topic="music"] .interest-card { background: linear-gradient(145deg, #fff7e4, #f5e7cb 70%, #efdbc1); padding: clamp(26px, 5vw, 64px); scrollbar-width: thin; scrollbar-color: #bca084 transparent; overscroll-behavior: contain; }
+.music-narrative { color: #624c3e; font: 17px/1.85 Georgia, 'Times New Roman', serif; }
+.music-narrative p { margin: 0 0 1.3em; }
+.music-narrative .music-lead { font-size: clamp(21px, 3vw, 26px); line-height: 1.5; color: #76513c; }
+.music-narrative cite { font-style: italic; }
+.music-narrative figure { margin: 0; }
+.music-narrative img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.music-narrative figcaption { font: italic 12px/1.6 Georgia, serif; color: #927962; margin: 10px 4px 2px; }
+.music-memory, .music-collection { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 32px; align-items: center; margin: 34px 0; }
+.music-collection { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); margin-top: 38px; }
+.music-photo { padding: 9px; background: #fffbef; border-radius: 12px; box-shadow: 0 7px 22px #6f513a17; }
+.music-memory .music-photo { transform: rotate(-1.5deg); }
+.music-collection .music-photo { transform: rotate(1.5deg); }
+.music-memory p:last-child, .music-collection p:last-child { margin-bottom: 0; }
+.music-divider { text-align: center; color: #bc9979; margin: 30px 0; font-size: 24px; }
+.music-ending { border-top: 1px solid #b69a7b40; margin-top: 38px; padding: 30px 0 8px; text-align: center; }
+.music-ending p:first-child { font-style: italic; font-size: clamp(21px, 3vw, 27px); line-height: 1.6; color: #76513c; }
+.music-ending p:last-child { max-width: 55ch; margin: 0 auto; }
+@media (max-width: 640px) {
+  .interest-dialog[data-topic="music"] .interest-card { padding: 26px 22px; }
+  .music-narrative { font-size: 16px; line-height: 1.8; }
+  .music-memory, .music-collection { grid-template-columns: minmax(0, 1fr); gap: 25px; margin-block: 28px; }
+  .music-photo { width: min(100%, 320px); justify-self: center; }
+}
+
+.interest-dialog[data-topic="baseball"] .interest-card { background: linear-gradient(145deg, #fff8e6, #edf0d9 70%, #e1e6ca); padding: clamp(26px, 5vw, 64px); scrollbar-width: thin; scrollbar-color: #a7a27e transparent; overscroll-behavior: contain; }
+.baseball-narrative { color: #555440; font: 17px/1.85 Georgia, 'Times New Roman', serif; }
+.baseball-narrative p { margin: 0 0 1.3em; }
+.baseball-narrative .baseball-lead { font-size: clamp(21px, 3vw, 25px); line-height: 1.55; color: #646044; }
+.baseball-narrative figure { margin: 0; padding: 9px; background: #fffdf0; border-radius: 12px; box-shadow: 0 7px 22px #54563717; }
+.baseball-narrative img { display: block; width: 100%; height: auto; border-radius: 7px; }
+.baseball-narrative figcaption { font: italic 12px/1.6 Georgia, serif; color: #83836b; margin: 10px 4px 2px; }
+.baseball-childhood { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; margin: 32px 0; }
+.baseball-childhood figure:first-child { transform: rotate(-1.5deg); }
+.baseball-childhood figure:last-child { transform: rotate(1.5deg); }
+.baseball-reflection { border-block: 1px solid #96967140; padding: 24px 8px; margin: 32px 0; text-align: center; }
+.baseball-reflection p { margin: 0; font-style: italic; font-size: clamp(23px,3vw,29px); color: #6c704d; }
+.baseball-later { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); align-items: center; gap: 30px; margin: 34px 0 8px; }
+.baseball-later p:last-child { margin-bottom: 0; }
+@media (max-width: 640px) {
+  .interest-dialog[data-topic="baseball"] .interest-card { padding: 26px 22px; }
+  .baseball-narrative { font-size: 16px; line-height: 1.8; }
+  .baseball-childhood { gap: 12px; }
+  .baseball-childhood figure { padding: 5px; }
+  .baseball-later { grid-template-columns: minmax(0,1fr); gap: 24px; }
+  .baseball-later figure { max-width: 340px; justify-self: center; }
+}
+
+/* Named chapters and in-scene navigation continue the same journey. */
+.scene-chapter { font: 10px/1.5 system-ui, sans-serif; letter-spacing: .2em; color: #92745d; margin: 0 0 22px; }
+.scene-nav-panel { width: min(280px, calc(100vw - 2.5rem)); }
+.page-scene-nav { position: absolute; inset: auto 0 0; z-index: 5; display: flex; justify-content: space-between; gap: 18px; padding: 16px clamp(18px, 3vw, 44px); pointer-events: none; }
+.page-scene-link { display: flex; align-items: center; gap: 12px; padding: 10px 17px; border-radius: 999px; pointer-events: auto; font: 14px/1.3 Georgia, serif; text-align: left; background-color: #fff0dacc; backdrop-filter: blur(8px); }
+.page-scene-link small { display: block; margin-bottom: 3px; font: 8px/1.3 system-ui, sans-serif; letter-spacing: .14em; }
+.page-scene-arrow { display: grid; place-items: center; width: 32px; height: 32px; font: 28px/1 Georgia, serif; }
+.page-scene-link:last-child { flex-direction: row-reverse; text-align: right; }
+.page-scene-link:hover .page-scene-arrow { transform: translateX(-3px); }
+.page-scene-link:last-child:hover .page-scene-arrow { transform: translateX(3px); }
+.scene-two { padding-bottom: 84px; }
+.mobius-heading { top: 7%; left: 18%; right: 12%; }
+.mobius-heading h1 { font-size: clamp(20px, 2.25vw, 32px); line-height: 1.4; text-wrap: pretty; }
+.mobius-heading .mobius-note { position: static; margin: 15px 0 0; font: italic 16px/1.4 Georgia, serif; letter-spacing: 0; color: #755740; }
+.scene-three .mobius-hint { bottom: 98px; left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 92%; padding: 12px 22px; border: 1px solid #a6815766; border-radius: 999px; background: #fff2daeb; box-shadow: 0 5px 20px #62462b15; color: #67452d; font-size: 13px; font-weight: 500; letter-spacing: .025em; line-height: 1.5; }
+.scene-three .mobius-hint span { margin-right: 8px; }
+.scene-three .mobius-hint .hint-divider { margin: 0 9px; }
+@media (max-width: 700px) {
+  .page-scene-nav { gap: 10px; padding: 12px; }
+  .page-scene-link { gap: 6px; padding: 9px 11px; font-size: 11px; max-width: 49%; }
+  .page-scene-arrow { width: 23px; flex-shrink: 0; font-size: 24px; }
+  .page-scene-link small { font-size: 6px; letter-spacing: .08em; }
+  .mobius-heading { top: 22%; left: 7%; right: 7%; }
+  .mobius-heading h1 { font-size: clamp(18px, 4.5vw, 23px); }
+  .mobius-heading .mobius-note { font-size: 14px; margin-top: 10px; }
+  .mobius-canvas { top: 39%; height: 40%; }
+  .scene-three .mobius-hint { bottom: 89px; padding: 10px 13px; font-size: 10px; }
+  .scene-three .mobius-hint .hint-divider { margin-inline: 3px; }
+}
+@media (max-height: 550px) and (min-width: 701px) {
+  .mobius-heading { top: 4%; left: 22%; right: 12%; }
+  .mobius-heading h1 { font-size: 18px; }
+  .mobius-heading .mobius-note { margin-top: 5px; font-size: 12px; }
+  .mobius-canvas { top: 29%; height: 48%; }
+  .scene-three .mobius-hint { bottom: 70px; padding: 5px 14px; font-size: 10px; }
+}
