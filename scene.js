@@ -799,3 +799,75 @@ async function navigateScene(destination) {
   }
 }
 nextButton.addEventListener('click', () => navigateScene('scene2'));
+
+// Smooth wheel scrolling for the document and reading panels. Scene-specific
+// gestures consume their own wheel events before this bubbling listener runs.
+{
+  let scrolling = null, scrollFrame = 0;
+  function stopSmoothScroll() {
+    cancelAnimationFrame(scrollFrame); scrollFrame = 0; scrolling = null;
+  }
+  function scrollSurface(target) {
+    for (let node = target instanceof Element ? target : target.parentElement; node && node !== document.body; node = node.parentElement) {
+      if (/(auto|scroll)/.test(getComputedStyle(node).overflowY) && node.scrollHeight > node.clientHeight + 1) return node;
+    }
+    if (document.querySelector('dialog[open]') || getComputedStyle(document.body).overflowY === 'hidden') return null;
+    const root = document.scrollingElement;
+    return root.scrollHeight > root.clientHeight + 1 ? root : null;
+  }
+  function animateScroll(now) {
+    scrollFrame = 0;
+    const state = scrolling;
+    if (!state || !state.element.isConnected || !state.element.getClientRects().length || document.hidden) { stopSmoothScroll(); return; }
+    const dt = Math.min((now - state.lastTime) / 1000, .05);
+    state.lastTime = now;
+    const max = Math.max(0, state.element.scrollHeight - state.element.clientHeight);
+    state.target = Math.min(max, Math.max(0, state.target));
+    const frequency = 12, offset = state.position - state.target;
+    const impulse = state.velocity + frequency * offset, decay = Math.exp(-frequency * dt);
+    state.position = state.target + (offset + impulse * dt) * decay;
+    state.velocity = (state.velocity - frequency * impulse * dt) * decay;
+    state.position = Math.min(max, Math.max(0, state.position));
+    const settled = Math.abs(state.target - state.position) < .4 && Math.abs(state.velocity) < 3;
+    if (settled) state.position = state.target;
+    state.element.scrollTo({ top: state.position, behavior: 'instant' });
+    if (settled) { scrolling = null; return; }
+    scrollFrame = requestAnimationFrame(animateScroll);
+  }
+  window.addEventListener('wheel', event => {
+    if (event.defaultPrevented || !event.cancelable || event.ctrlKey || event.metaKey || event.shiftKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    if (event.target instanceof Element && event.target.closest('.tape-carousel, .mobius-canvas, .photo-viewer, input, textarea, select, [contenteditable="true"]')) return;
+    const element = scrollSurface(event.target);
+    if (!element) return;
+    const max = element.scrollHeight - element.clientHeight;
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1;
+    const distance = event.deltaY * unit;
+    const current = scrolling?.element === element ? scrolling.target : element.scrollTop;
+    const target = Math.max(0, Math.min(max, current + distance));
+    // Contain the reading panel at its limits; never move the page behind a dialog.
+    if (target === current && !scrolling) {
+      if (element !== document.scrollingElement) event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    if (scrolling?.element !== element) {
+      stopSmoothScroll();
+      scrolling = { element, position: element.scrollTop, target, velocity: 0, lastTime: performance.now() };
+    } else {
+      // Reversing the wheel should respond now rather than unwind old input.
+      if (Math.sign(distance) !== Math.sign(scrolling.target - scrolling.position)) {
+        scrolling.target = Math.max(0, Math.min(max, scrolling.position + distance));
+        scrolling.velocity = 0;
+      } else scrolling.target = target;
+    }
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(animateScroll);
+  }, { passive: false });
+  window.addEventListener('pointerdown', stopSmoothScroll, { passive: true });
+  window.addEventListener('touchstart', stopSmoothScroll, { passive: true });
+  window.addEventListener('keydown', event => {
+    if (['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' ','Escape','Tab'].includes(event.key)) stopSmoothScroll();
+  });
+  window.addEventListener('hashchange', stopSmoothScroll);
+  document.addEventListener('close', stopSmoothScroll, true);
+  document.addEventListener('visibilitychange', stopSmoothScroll);
+}
