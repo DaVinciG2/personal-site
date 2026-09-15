@@ -3,15 +3,15 @@ const escapeHtml = value => value.replace(/[&<>"']/g, character => ({ '&': '&amp
 function renderPhotoAlbums() {
   return '<div class="photo-albums">' + photoAlbums.map(album =>
     '<section class="photo-location"><h3>' + escapeHtml(album.place) + '<span>' + album.photos.length + ' photos</span></h3><div class="album-sheet">' +
-    album.photos.map((photo, index) => '<figure><a class="album-art album-photo" href="' + escapeHtml(photo) + '" target="_blank" rel="noopener" aria-label="' + escapeHtml(album.place) + ' photo ' + (index + 1) + ', open original in a new tab"><img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(album.place) + ' — photo ' + (index + 1) + '" loading="lazy" decoding="async"></a><figcaption>' + escapeHtml(album.place) + ' / ' + String(index + 1).padStart(2, '0') + '</figcaption></figure>').join('') +
+    album.photos.map((photo, index) => '<figure><button type="button" class="album-art album-photo" data-photo-src="' + escapeHtml(photo) + '" aria-haspopup="dialog" aria-label="' + escapeHtml(album.place) + ' photo ' + (index + 1) + ', enlarge photo"><img src="' + escapeHtml(photo) + '" alt="' + escapeHtml(album.place) + ' — photo ' + (index + 1) + '" loading="lazy" decoding="async"></button><figcaption>' + escapeHtml(album.place) + ' / ' + String(index + 1).padStart(2, '0') + '</figcaption></figure>').join('') +
     '</div></section>').join('') + '</div>';
 }
 
 function renderActivityMedia(notes, position = 'end') {
-  return (notes?.media || []).filter(item => (item.position ?? 'end') === position).map(item => `<figure class="activity-figure"><a href="${escapeHtml(item.src)}" target="_blank" rel="noopener" aria-label="Open full-size image: ${escapeHtml(item.alt)}"><img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" loading="lazy" decoding="async"></a><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join('');
+  return (notes?.media || []).filter(item => (item.position ?? 'end') === position).map(item => `<figure class="activity-figure"><img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" loading="lazy" decoding="async"><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join('');
 }
 function renderActivityLinks(notes, position = 'end') {
-  const links = (notes.links || []).filter(link => (link.position ?? 'end') === position).map(link => `<a class="story-link activity-resource" href="${escapeHtml(link.href)}" ${link.download ? 'download' : 'target="_blank" rel="noopener"'}>${escapeHtml(link.label)}</a>`).join('');
+  const links = (notes.links || []).filter(link => (link.position ?? 'end') === position).map(link => `<a class="story-link activity-resource" href="${escapeHtml(link.href)}" ${link.download ? 'download' : 'target="_blank" rel="noopener"'}>${escapeHtml(link.label)}${link.footnote ? '<sup class="activity-footnote-marker">1</sup>' : ''}</a>${link.footnote ? '<p class="activity-footnote"><sup>1</sup> ' + escapeHtml(link.footnote) + '</p>' : ''}`).join('');
   return links ? `<div class="activity-resources">${links}</div>` : '';
 }
 function renderActivityNotes(notes) {
@@ -55,7 +55,7 @@ const tapes = [
           {
             "src": "./activities/jakobson-model.svg",
             "alt": "Jakobson’s six communication factors: addresser, message, addressee, context, contact, and code. AILATO draws on four factors, adapting contact as its channel module.",
-            "caption": "Adapted from Roman Jakobson, Linguistics and Poetics (1960). Gold highlights the factors informing AILATO; the Channel label belongs to my adaptation. Click to enlarge.",
+            "caption": "Adapted from Roman Jakobson, Linguistics and Poetics (1960). Gold highlights the factors informing AILATO; the Channel label belongs to my adaptation.",
             "position": 0
           }
         ]
@@ -74,27 +74,33 @@ const tapes = [
           "The next step proposed in the paper is a more controlled study with matched presentation durations and stronger awareness measures. For me, the project connects curiosity about perception with the need to examine what a method can actually tell us."
         ],
         "question": "How can we distinguish a change in perception from the effects of our experimental design?",
+        "media": [
+          { "src": "./activities/uchicago-chinatown-hotpot.jpg", "alt": "Having hotpot with classmates in Chicago’s Chinatown during my time at UChicago; two classmates’ faces are covered with emoji stickers.", "caption": "Outside the classroom: hotpot with classmates in Chinatown during my time at UChicago." }
+        ],
         "links": [
           {
             "href": "./activities/priming-paper.pdf",
-            "label": "Read the priming paper · PDF ↗"
+            "label": "Read the priming paper · PDF ↗",
+            "footnote": "As required by the course, each student wrote the introduction and conclusion independently, while the middle sections were completed collaboratively by the group. The paper therefore carries an individual author’s name in accordance with the course requirements."
           }
         ]
       }
     ],
     [
-      "03 / LANGUAGE & STORIES",
-      "How Stories Become Meaning",
-      "Visual Novel Horizon brings my interest in language and storytelling into a community built around a shared enthusiasm.",
+      "03 / LEADERSHIP & COMMUNITY",
+      "Learning to Lead Together",
+      "Visual novels are part of my everyday life, but founding Visual Novel Horizon opened up another question: how do people with different personalities learn to work together? I began to examine and revise my own assumptions about leadership through coordinating, listening, and making decisions with others. <strong>This became a personal part of my exploration of cognition: learning how my understanding of people changes through experience.</strong>",
       {
         "meta": "Visual Novel Horizon · Founder & president",
         "paragraphs": [
-          "I founded Visual Novel Horizon, a student circle exploring visual novels through weekly sessions and localization. Our work included a year-long localization effort, more than 50 blog posts uploaded to our club’s website, and a community of over 10 highly active members. At the recruitment fair, we demonstrated the results of a year of club localization work.",
-          "While localizing and reworking Alive Renewal, I faced a small but persistent question: should we retain the many ellipses that break up the Japanese dialogue, or remove them to make the Chinese text more direct?",
-          "After considering how ellipses function in both languages and gathering members’ opinions, I decided to follow the original punctuation wherever it did not obstruct understanding. I felt the difference in usage was not large enough to justify removing those pauses by default.",
-          "This decision made the relationship between language and interpretation concrete for me. Translating the words also meant deciding how much of the original pacing to carry across—and discussing that decision with other readers."
+          "I founded Visual Novel Horizon, a student circle exploring visual novels through weekly sessions and localization. Together, we sustained a year-long localization effort, published more than 50 blog posts on our club’s website, and built a community of over 10 highly active members. At the recruitment fair, we demonstrated the results of a year of club localization work.",
+          "For someone who had once been afraid to approach people, becoming the founder and president of a club was a personal change. Our shared enthusiasm brought us together, but our personalities were often very different. Coordinating our work and communicating across those differences gradually changed my understanding of what it meant to lead.",
+          "I came to understand leadership as creating an environment where everyone feels comfortable sharing ideas, helping one another, and taking the initiative to contribute their strengths. The work mattered, but so did how people felt about taking part in it. Learning to make room for different voices became part of my responsibility.",
+          "A small decision during our localization of Alive Renewal made this concrete. The Japanese dialogue contained many ellipses. Should we preserve those pauses, or remove them to make the Chinese text more direct? It was a translation question, but it also gave me a chance to practice listening: I gathered members’ opinions and considered them alongside how ellipses function in both languages.",
+          "That discussion informed my decision to retain the original punctuation wherever it did not obstruct understanding. I did not think the difference in usage justified removing the pauses by default. What stayed with me was the process of making that decision: taking other people’s readings seriously before settling on an approach. Even a discussion about punctuation could be a place for members to contribute their judgment.",
+          "As I learn to investigate cognition scientifically, I am also revising my own understanding of leadership through experience. Visual Novel Horizon has made that growth personal. I am learning how to help people with different personalities work together, feel at ease expressing themselves, and recognize what they can offer each other."
         ],
-        "question": "How does a story become meaningful to someone in another language?",
+        "question": "How can I create a space where different people feel comfortable speaking up, helping one another, and contributing their strengths?",
         "media": [
           {
             "src": "./activities/vn-website.png",
@@ -111,7 +117,7 @@ const tapes = [
           {
             "src": "./activities/alive-renewal-translation.png",
             "alt": "Alive Renewal Japanese and Chinese dialogue side by side, retaining ellipses",
-            "caption": "Alive Renewal: comparing the Japanese dialogue and our Chinese translation."
+            "caption": "Alive Renewal: the ellipses we discussed as a team, shown in the Japanese dialogue and our Chinese translation."
           }
         ]
       }
@@ -179,14 +185,18 @@ const tapes = [
     [
       "03 / INTERACTION & FEEDBACK",
       "Refining the Experience",
-      "During an indie-game optimization internship, I contributed to improving user experience and balance through repeated playtesting.",
+      "During my indie-game optimization internship at Ernst & Young Limited, I worked on <cite>Midst of Other Air</cite>, contributing to improvements in user experience and balance through repeated playtesting.",
       {
-        "meta": "Game optimization internship · Lead game optimizer",
+        "meta": "Ernst & Young Limited · Game optimization internship · Lead game optimizer",
         "paragraphs": [
           "My work included recording bugs and giving feedback on game mechanics and narrative flow. Repeated playtesting provided a practical setting for noticing points of friction and communicating possible improvements.",
           "This work connects with the storytelling interests I explore in Visual Novel Horizon. Here, the focus turns to interaction: how the experience unfolds as someone plays, and how feedback can inform its refinement."
         ],
-        "question": "How can careful observation help make an interactive experience clearer?"
+        "question": "How can careful observation help make an interactive experience clearer?",
+        "media": [
+          { "src": "./activities/midst-tool-shelf.jpg", "alt": "Midst of Other Air gameplay: a character faces a tool shelf, with a task to find a tool for scraping off paint and an interaction prompt to inspect the shelf.", "caption": "Midst of Other Air — an in-game view of the tool-shelf interaction, with the current objective and interaction prompt visible.", "position": 0 },
+          { "src": "./activities/midst-washbasin.jpg", "alt": "Midst of Other Air gameplay: a close-up of a stained washbasin with a task to wash the dirt from the character’s hands and a prompt to use the basin.", "caption": "Midst of Other Air — the washbasin interaction, another moment from the game I worked on during my internship.", "position": 1 }
+        ]
       }
     ]
   ]
@@ -199,7 +209,7 @@ const tapes = [
 archive.innerHTML = `
   <div class="archive-window" aria-hidden="true"><div class="archive-window-view"><canvas class="archive-window-canvas"></canvas><span class="window-mullion window-mullion-vertical"></span><span class="window-mullion window-mullion-horizontal"></span></div><span class="archive-window-sill"></span></div>
   <div class="archive-haze" aria-hidden="true"></div>
-  <header class="archive-heading"><h1 tabindex="-1">A few things <em>worth keeping.</em></h1><p>Thoughts, experiments, and little pieces of life.</p></header>
+  <header class="archive-heading"><h1 tabindex="-1">The Carriage <em>of Stories</em></h1><p>Aboard the train: thoughts, experiences, and stories I carry with me.</p></header>
   <div class="tape-carousel" role="region" aria-roledescription="carousel" aria-label="Personal archive tapes" tabindex="0"><div class="tape-rail"></div></div>
   <div class="deck-area"><p class="tape-instruction">Click a tape to unfold its story</p>
     <div class="recorder archive-printer" role="img" aria-label="Retro cassette reader and paper printer">
@@ -440,3 +450,39 @@ const carouselResize = new ResizeObserver(() => {
 carouselResize.observe(carousel);
 
 window.addEventListener('hashchange', settleCarousel);
+
+// A second native dialog sits above the open album and leaves its scroll position intact.
+const photoViewer=document.createElement('dialog');
+photoViewer.className='photo-viewer';photoViewer.setAttribute('aria-label','Enlarged album photo');
+photoViewer.innerHTML=`<div class="photo-viewer-toolbar"><button type="button" class="photo-viewer-zoom" aria-pressed="false">Zoom in</button><button type="button" class="photo-viewer-close" aria-label="Close enlarged photo">Close ×</button></div><div class="photo-viewer-stage"><img alt=""></div><p class="photo-viewer-caption"></p><p class="photo-viewer-error" role="status" hidden>Could not load this photo. Close and try again.</p>`;
+document.body.append(photoViewer);
+const viewerImage=photoViewer.querySelector('img'), viewerStage=photoViewer.querySelector('.photo-viewer-stage'), zoomButton=photoViewer.querySelector('.photo-viewer-zoom');
+let photoOpener=null;
+function closePhotoViewer(restoreFocus=true){
+  if(!photoViewer.open)return;
+  photoViewer.close();photoViewer.classList.remove('is-zoomed');
+  if(restoreFocus && photoOpener?.isConnected && dialog.open)photoOpener.focus({preventScroll:true});
+  viewerImage.removeAttribute('src');photoOpener=null;
+}
+folds.addEventListener('click',event=>{
+  const button=event.target.closest('.album-photo');if(!button)return;
+  event.preventDefault();photoOpener=button;
+  photoViewer.classList.remove('is-zoomed');zoomButton.textContent='Zoom in';zoomButton.setAttribute('aria-pressed','false');
+  photoViewer.querySelector('.photo-viewer-error').hidden=true;
+  viewerImage.alt=button.querySelector('img').alt;
+  photoViewer.querySelector('.photo-viewer-caption').textContent=button.closest('figure').querySelector('figcaption').textContent;
+  viewerImage.src=button.dataset.photoSrc;
+  photoViewer.showModal();viewerStage.scrollTo(0,0);
+  photoViewer.animate([{opacity:0},{opacity:1}],{duration:220,easing:'ease-out'});
+});
+zoomButton.addEventListener('click',()=>{
+  const zoomed=photoViewer.classList.toggle('is-zoomed');
+  zoomButton.textContent=zoomed ? 'Fit to screen' : 'Zoom in';zoomButton.setAttribute('aria-pressed',String(zoomed));
+  viewerStage.scrollTo(0,0);
+});
+viewerImage.addEventListener('error',()=>{if(photoViewer.open && viewerImage.hasAttribute('src'))photoViewer.querySelector('.photo-viewer-error').hidden=false;});
+photoViewer.querySelector('.photo-viewer-close').addEventListener('click',()=>closePhotoViewer());
+photoViewer.addEventListener('cancel',event=>{event.preventDefault();event.stopPropagation();closePhotoViewer();});
+photoViewer.addEventListener('click',event=>{if(event.target===photoViewer || event.target===viewerStage)closePhotoViewer();});
+dialog.addEventListener('close',()=>closePhotoViewer(false));
+window.addEventListener('hashchange',()=>{if(location.hash!=='#scene2')closePhotoViewer(false);});

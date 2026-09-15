@@ -5,6 +5,18 @@ import { resolve, sep, extname, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const files = {
+  '/activities/uchicago-chinatown-hotpot.jpg': ['dist/activities/uchicago-chinatown-hotpot.jpg', 'image/jpeg'],
+  '/activities/midst-tool-shelf.jpg': ['dist/activities/midst-tool-shelf.jpg', 'image/jpeg'],
+  '/activities/midst-washbasin.jpg': ['dist/activities/midst-washbasin.jpg', 'image/jpeg'],
+  '/baseball/batting.jpg': ['dist/baseball/batting.jpg', 'image/jpeg'],
+  '/baseball/fielding.jpg': ['dist/baseball/fielding.jpg', 'image/jpeg'],
+  '/baseball/walking-home.jpg': ['dist/baseball/walking-home.jpg', 'image/jpeg'],
+  '/music/first-violin.jpg': ['dist/music/first-violin.jpg', 'image/jpeg'],
+  '/music/album-collection.jpg': ['dist/music/album-collection.jpg', 'image/jpeg'],
+  '/gaming/estelle.jpg': ['dist/gaming/estelle.jpg', 'image/jpeg'],
+  '/gaming/berseria.jpg': ['dist/gaming/berseria.jpg', 'image/jpeg'],
+  '/gaming/ninja-gaiden-sigma.png': ['dist/gaming/ninja-gaiden-sigma.png', 'image/png'],
+  '/about-zack.jpg': ['dist/about-zack.jpg', 'image/jpeg'],
   '/activities/jakobson-model.svg': ['dist/activities/jakobson-model.svg', 'image/svg+xml'],
   '/activities/memorify-testing.png': ['dist/activities/memorify-testing.png', 'image/png'],
   '/activities/vn-website.png': ['dist/activities/vn-website.png', 'image/png'],
@@ -22,6 +34,8 @@ const files = {
   '/tapes.js': ['dist/tapes.js', 'text/javascript'],
   '/tapes.css': ['dist/tapes.css', 'text/css'],
   '/scene.js': ['dist/scene.js', 'text/javascript'],
+  '/mobius.js': ['dist/mobius.js', 'text/javascript'],
+  '/spectral-background.js': ['dist/spectral-background.js', 'text/javascript'],
   '/buffer1.txt': ['buffer1.txt', 'text/plain'],
   '/image.txt': ['image.txt', 'text/plain'],
 };

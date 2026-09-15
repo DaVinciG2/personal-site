@@ -1,5 +1,27 @@
 import './tapes.js';
+import { syncMobius } from './mobius.js';
 const status = document.querySelector('.status');
+
+// Wait for GPU completion without blocking the main thread with gl.finish().
+function waitForSceneGPU(gl) {
+  const fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+  if (!fence) return Promise.reject(new Error('Could not prepare the cloud view.'));
+  gl.flush();
+  return new Promise((resolve, reject) => {
+    const deadline = performance.now() + 10000;
+    function poll() {
+      const state = gl.clientWaitSync(fence, 0, 0);
+      if (state === gl.ALREADY_SIGNALED || state === gl.CONDITION_SATISFIED) {
+        gl.deleteSync(fence);
+        resolve();
+      } else if (state === gl.WAIT_FAILED || gl.isContextLost() || performance.now() > deadline) {
+        gl.deleteSync(fence);
+        reject(new Error('The cloud view could not finish its first frame.'));
+      } else setTimeout(poll, 16);
+    }
+    poll();
+  });
+}
 
 async function startScene(options = {}) {
   const cloudsOnly = !!options.cloudsOnly;
@@ -132,6 +154,10 @@ async function startScene(options = {}) {
   let elapsed = 0;
   let previousTime = null;
   let lost = false;
+  let firstFrameSubmitted = false;
+  let resolveReady;
+  let rejectReady;
+  const ready = new Promise((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
 
   function render(now) {
     frame = 0;
@@ -145,9 +171,15 @@ async function startScene(options = {}) {
       draw(imagePass, null, targets[writeIndex].texture, null, elapsed);
       readIndex = writeIndex;
       if (!cloudsOnly) status.hidden = true;
-      canvas.dataset.ready = 'true';
+      if (!firstFrameSubmitted) {
+        firstFrameSubmitted = true;
+        waitForSceneGPU(gl).then(() => {
+          canvas.dataset.ready = 'true';
+          resolveReady();
+        }, error => { rejectReady(error); handleError(error); });
+      }
       if (visible && !document.hidden) frame = requestAnimationFrame(render);
-    } catch (error) { handleError(error); }
+    } catch (error) { rejectReady(error); handleError(error); }
   }
   function schedule() {
     cancelAnimationFrame(frame);
@@ -162,8 +194,11 @@ async function startScene(options = {}) {
     event.preventDefault();
     lost = true;
     cancelAnimationFrame(frame);
-    handleError(new Error('The graphics connection was interrupted. Reload to restore the landscape.'));
+    const error = new Error('The graphics connection was interrupted. Reload to restore the landscape.');
+    rejectReady(error);
+    handleError(error);
   });
+  return ready;
 }
 
 function showError(error) {
@@ -176,13 +211,19 @@ startScene().catch(showError);
 // Allocate the second view only when its scene is first visited.
 const windowView = document.querySelector('.archive-window-view');
 const windowCanvas = windowView.querySelector('canvas');
+let windowReady;
+function prepareWindowView() {
+  // Route changes and the visibility observer share one initialization.
+  return windowReady ??= startScene({ canvas: windowCanvas, surface: windowView, cloudsOnly: true }).catch(error => {
+    windowCanvas.dataset.ready = 'false';
+    console.warn('Window cloud view unavailable:', error);
+    // Retain the CSS window background and allow navigation after a GPU failure.
+  });
+}
 const windowStart = new IntersectionObserver(([entry]) => {
   if (!entry.isIntersecting) return;
   windowStart.disconnect();
-  startScene({ canvas: windowCanvas, surface: windowView, cloudsOnly: true }).catch(error => {
-    windowCanvas.dataset.ready = 'false';
-    console.warn('Window cloud view unavailable:', error);
-  });
+  prepareWindowView();
 });
 windowStart.observe(windowView);
 
@@ -594,6 +635,24 @@ aboutDialog.addEventListener('cancel', event => { event.preventDefault(); closeA
 
 const firstScene = document.querySelector('.scene');
 const secondScene = document.querySelector('.scene-two');
+const thirdScene = document.querySelector('.scene-three');
+const sceneNames = { scene1: 'The Landscape Within', scene2: 'The Carriage of Stories', scene3: 'The Engine Room' };
+const pageSceneButtons = [];
+firstScene.setAttribute('aria-label', sceneNames.scene1);
+for (const [surface, previous, next] of [[secondScene, 'scene1', 'scene3'], [thirdScene, 'scene2', 'scene1']]) {
+  const nav = document.createElement('nav');
+  nav.className = 'page-scene-nav'; nav.setAttribute('aria-label', 'Continue the journey');
+  for (const [destination, direction] of [[previous, 'previous'], [next, 'next']]) {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'page-scene-link theme-button';
+    button.dataset.destination = destination;
+    button.setAttribute('aria-label', (direction === 'previous' ? 'Previous: ' : 'Next: ') + sceneNames[destination]);
+    button.innerHTML = '<span class="page-scene-arrow" aria-hidden="true">' + (direction === 'previous' ? '←' : '→') + '</span><span><small>' + (direction === 'previous' ? 'PREVIOUS' : next === 'scene1' ? 'BACK TO THE BEGINNING' : 'NEXT CHAPTER') + '</small>' + sceneNames[destination] + '</span>';
+    button.addEventListener('click', () => navigateScene(destination)); nav.append(button); pageSceneButtons.push(button);
+  }
+  surface.append(nav);
+  surface.setAttribute('aria-label', sceneNames[surface === firstScene ? 'scene1' : surface === secondScene ? 'scene2' : 'scene3']);
+}
+
 const nextButton = document.querySelector('.next-scene');
 const transition = document.querySelector('.cloud-transition');
 const sceneNav = document.querySelector('.scene-nav');
@@ -617,20 +676,27 @@ sceneChoices.forEach(button => button.addEventListener('click', () => navigateSc
 let navigating = false;
 function applyRoute() {
   const isSceneTwo = location.hash === '#scene2';
-  firstScene.hidden = isSceneTwo;
+  const isSceneThree = location.hash === '#scene3';
+  firstScene.hidden = isSceneTwo || isSceneThree;
+  thirdScene.hidden = !isSceneThree;
+  syncMobius(isSceneThree);
   secondScene.hidden = !isSceneTwo;
   aboutButton.hidden = false;
   sceneChoices.forEach(button => {
-    if (button.dataset.scene === (isSceneTwo ? 'scene2' : 'scene1')) button.setAttribute('aria-current', 'page');
+    if (button.dataset.scene === (isSceneThree ? 'scene3' : isSceneTwo ? 'scene2' : 'scene1')) button.setAttribute('aria-current', 'page');
     else button.removeAttribute('aria-current');
   });
   closeSceneNav();
-  document.title = isSceneTwo ? 'scene2 — Cloud Train' : 'Cloud Train';
+  document.title = sceneNames[isSceneThree ? 'scene3' : isSceneTwo ? 'scene2' : 'scene1'] + ' — Zack Xu';
+  if (isSceneThree) {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    thirdScene.querySelector('h1').focus({ preventScroll: true });
+  }
   if (isSceneTwo) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     secondScene.querySelector('h1').focus({ preventScroll: true });
   }
-  if (!isSceneTwo && location.hash === '#scene1') {
+  if (!isSceneTwo && !isSceneThree && location.hash === '#scene1') {
     window.scrollTo({ top: 0, behavior: 'instant' });
     introQuote.focus({ preventScroll: true });
   }
@@ -682,11 +748,12 @@ function paintTransitionClouds(canvas) {
   ctx.globalCompositeOperation = 'source-over';
 }
 async function navigateScene(destination) {
-  if (navigating || !['scene1', 'scene2'].includes(destination)) return;
+  if (navigating || !['scene1', 'scene2', 'scene3'].includes(destination)) return;
   closeSceneNav();
   sceneNavToggle.disabled = true;
   navigating = true;
   nextButton.disabled = true;
+  pageSceneButtons.forEach(button => button.disabled = true);
   const curtain = document.createElement('canvas');
   curtain.className = 'cloud-curtain';
   transition.append(curtain);
@@ -707,6 +774,10 @@ async function navigateScene(destination) {
     await cover.finished;
     location.hash = destination;
     applyRoute();
+    if (destination === 'scene2') await prepareWindowView();
+    // Allow layout, carousel observers and the first GPU frame to reach the
+    // compositor while the curtain still fully covers the new scene.
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     // Keep the same cloud canvas above the new scene until its entrance completes.
     reveal = curtain.animate([
       { transform: 'translateX(-10%)', opacity: 1 },
@@ -723,6 +794,7 @@ async function navigateScene(destination) {
     document.body.style.overflow = oldOverflow;
     navigating = false;
     nextButton.disabled = false;
+    pageSceneButtons.forEach(button => button.disabled = false);
     sceneNavToggle.disabled = false;
   }
 }
